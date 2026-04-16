@@ -1,5 +1,6 @@
 import {
   CertificateManager,
+  CertificateWatcher,
   SoapClient,
   XmlSigner,
   getSefazUrl,
@@ -7,12 +8,17 @@ import {
   NFE_SERVICES,
   getUFCode,
   withRetry,
+  CircuitBreaker,
   nowNFe,
   SefazError,
+  SoapError,
+  sanitizeXmlForLog,
+  truncateXml,
   type CertificateOptions,
   type Ambiente,
   type LoggerInterface,
   type RetryOptions,
+  type CircuitBreakerOptions,
   createLogger,
 } from '@acbr-node/core';
 import type { NFe, Emitente, Endereco } from './types/nfe.js';
@@ -36,6 +42,7 @@ import {
 } from './parsers/response-parser.js';
 import { parseConsultaCadastro, type RetornoConsultaCadastro } from './parsers/consulta-cadastro-parser.js';
 import { parseDistribuicaoDFe, type RetornoDistribuicaoDFe } from './parsers/distribuicao-parser.js';
+import { validateNFe } from './validation/nfe-validator.js';
 
 export interface NFeClientConfig {
   uf: string;
@@ -44,8 +51,13 @@ export interface NFeClientConfig {
   certificado: CertificateOptions;
   logger?: LoggerInterface;
   retryOptions?: Partial<RetryOptions>;
+  circuitBreakerOptions?: Partial<CircuitBreakerOptions>;
   timeout?: number;
   contingencia?: boolean;
+  /** Ativar validação Zod antes de gerar XML (padrão: true) */
+  validar?: boolean;
+  /** Logar XML request/response sanitizado (padrão: false) */
+  logXml?: boolean;
 }
 
 export interface EmpresaConfig {
@@ -61,9 +73,12 @@ export interface EmpresaConfig {
 export class NFeClient {
   private config: NFeClientConfig;
   private certManager: CertificateManager;
+  private certWatcher: CertificateWatcher;
   private soapClient: SoapClient;
+  private circuitBreaker: CircuitBreaker;
   private logger: LoggerInterface;
   private initialized = false;
+  private _contingenciaAtiva = false;
 
   private get ambienteStr(): Ambiente {
     return this.config.ambiente === 1 ? 'producao' : 'homologacao';
@@ -73,14 +88,21 @@ export class NFeClient {
     return getUFCode(this.config.uf);
   }
 
+  /** Indica se a contingência está ativa */
+  get contingenciaAtiva(): boolean {
+    return this._contingenciaAtiva || this.config.contingencia === true;
+  }
+
   constructor(config: NFeClientConfig) {
-    this.config = config;
+    this.config = { validar: true, logXml: false, ...config };
     this.certManager = new CertificateManager();
+    this.certWatcher = new CertificateWatcher(undefined, config.logger);
     this.logger = config.logger ?? createLogger(false);
     this.soapClient = new SoapClient({
       timeout: config.timeout ?? 30000,
       logger: this.logger,
     });
+    this.circuitBreaker = new CircuitBreaker(config.circuitBreakerOptions);
   }
 
   /**
@@ -94,9 +116,8 @@ export class NFeClient {
     const certData = await this.certManager.load(this.config.certificado);
     this.logger.info(`Certificado carregado: ${certData.info.subject.CN} (expira em ${certData.daysUntilExpiry} dias)`);
 
-    if (certData.daysUntilExpiry <= 30) {
-      this.logger.warn(`Certificado expira em ${certData.daysUntilExpiry} dias!`);
-    }
+    // Verificar expiração do certificado
+    this.certWatcher.check(certData.info);
 
     // Configurar mTLS com PFX original
     if (this.config.certificado.pfxBuffer) {
@@ -136,6 +157,11 @@ export class NFeClient {
 
   async autorizarNFe(nfe: NFe, sincrono: boolean = true): Promise<RetornoAutorizacao> {
     await this.ensureInit();
+
+    // Validar dados se configurado
+    if (this.config.validar) {
+      validateNFe(nfe);
+    }
 
     // Montar XML
     const { xml, chaveAcesso } = buildNFeXml(nfe);
@@ -425,6 +451,23 @@ export class NFeClient {
     return parseEvento(response);
   }
 
+  /**
+   * Ativa contingência manualmente
+   */
+  ativarContingencia(): void {
+    this._contingenciaAtiva = true;
+    this.logger.warn('Contingência ativada manualmente');
+  }
+
+  /**
+   * Desativa contingência manualmente
+   */
+  desativarContingencia(): void {
+    this._contingenciaAtiva = false;
+    this.circuitBreaker.reset();
+    this.logger.info('Contingência desativada');
+  }
+
   private async sendToSefaz(
     url: string,
     xml: string,
@@ -433,25 +476,73 @@ export class NFeClient {
     const service = NFE_SERVICES[serviceName];
     if (!service) throw new Error(`Serviço desconhecido: ${serviceName}`);
 
+    // Log XML request sanitizado
+    if (this.config.logXml) {
+      this.logger.debug(`SOAP Request XML:\n${truncateXml(sanitizeXmlForLog(xml))}`);
+    }
+
     const sendFn = async () => {
-      const response = await this.soapClient.send(
-        { url, action: service.action, body: xml },
-        serviceName
+      const response = await this.circuitBreaker.execute(() =>
+        this.soapClient.send(
+          { url, action: service.action, body: xml },
+          serviceName
+        )
       );
+
+      // Log XML response sanitizado
+      if (this.config.logXml) {
+        this.logger.debug(`SOAP Response XML:\n${truncateXml(sanitizeXmlForLog(response.xml))}`);
+      }
+
       return response.xml;
     };
 
-    if (this.config.retryOptions) {
-      return withRetry(sendFn, {
-        ...this.config.retryOptions,
-        retryableCheck: (error) => {
-          if (error instanceof SefazError) return error.isRetryable;
-          return true; // retry network errors
-        },
-      });
-    }
+    try {
+      if (this.config.retryOptions) {
+        return await withRetry(sendFn, {
+          ...this.config.retryOptions,
+          retryableCheck: (error) => {
+            if (error instanceof SefazError) return error.isRetryable;
+            if (error instanceof SoapError) return true;
+            return true; // retry network errors
+          },
+        });
+      }
+      return await sendFn();
+    } catch (error) {
+      // Fallback automático para contingência se SEFAZ principal falhar
+      if (!this.contingenciaAtiva && this.shouldFallbackToContingency(error)) {
+        this.logger.warn(`Falha no autorizador principal, tentando contingência SVC...`);
+        this._contingenciaAtiva = true;
 
-    return sendFn();
+        const contingencyUrl = getSefazUrl(
+          { uf: this.config.uf, ambiente: this.ambienteStr, contingencia: true },
+          serviceName as any
+        );
+
+        try {
+          const response = await this.soapClient.send(
+            { url: contingencyUrl, action: service.action, body: xml },
+            serviceName
+          );
+          return response.xml;
+        } catch (contingencyError) {
+          this._contingenciaAtiva = false;
+          throw contingencyError;
+        }
+      }
+      throw error;
+    }
+  }
+
+  private shouldFallbackToContingency(error: unknown): boolean {
+    // Ativar contingência para erros de rede/timeout ou SEFAZ indisponível
+    if (error instanceof SoapError) return true;
+    if (error instanceof SefazError) {
+      return ['108', '109'].includes(error.cStat); // Serviço paralisado
+    }
+    if (error instanceof Error && error.message.includes('Circuit breaker')) return true;
+    return false;
   }
 
   private buildNFeProc(signedNFeXml: string, protNFe: any): string {

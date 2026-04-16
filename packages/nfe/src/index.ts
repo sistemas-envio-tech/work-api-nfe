@@ -32,3 +32,6 @@ export {
 } from './parsers/response-parser.js';
 export { parseConsultaCadastro, type RetornoConsultaCadastro, type InfCadConsulta } from './parsers/consulta-cadastro-parser.js';
 export { parseDistribuicaoDFe, type RetornoDistribuicaoDFe, type DocZipDFe } from './parsers/distribuicao-parser.js';
+
+// Validation
+export { validateNFe, validateBusinessRules } from './validation/nfe-validator.js';

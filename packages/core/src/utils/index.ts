@@ -25,6 +25,12 @@ export {
 } from './retry.js';
 
 export {
+  CircuitBreaker,
+  CircuitState,
+  type CircuitBreakerOptions,
+} from './circuit-breaker.js';
+
+export {
   IBGE_UF,
   getUFCode,
   getUFByCode,

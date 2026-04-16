@@ -1,9 +1,12 @@
 // Certificate
 export {
   CertificateManager,
+  CertificateWatcher,
   type CertificateOptions,
   type CertificateData,
   type CertificateInfo,
+  type CertificateWatcherOptions,
+  type CertificateStatus,
 } from './certificate/index.js';
 
 // XML
@@ -20,6 +23,8 @@ export {
   SoapClient,
   buildSoapEnvelope,
   WSDL_NAMESPACES,
+  sanitizeXmlForLog,
+  truncateXml,
   type SoapClientOptions,
   type SoapRequest,
   type SoapResponse,
@@ -60,6 +65,9 @@ export {
   formatNFeDate,
   nowNFe,
   withRetry,
+  CircuitBreaker,
+  CircuitState,
+  type CircuitBreakerOptions,
   IBGE_UF,
   getUFCode,
   getUFByCode,

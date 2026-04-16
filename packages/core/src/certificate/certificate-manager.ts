@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import crypto from 'node:crypto';
+import forge from 'node-forge';
 import { CertificateError } from '../errors/certificate-error.js';
 import type { CertificateOptions, CertificateData, CertificateInfo } from './types.js';
 
@@ -86,21 +87,23 @@ export class CertificateManager {
     pfxBuffer: Buffer,
     password: string
   ): { key: string; cert: string; chain: string[] } {
-    const pfx = crypto.createPrivateKey({
-      key: pfxBuffer,
-      format: 'pkcs12' as any,
-      passphrase: password,
-    });
+    // Node 21+ removeu `format: 'pkcs12'` do crypto.createPrivateKey — usa node-forge.
+    const p12Der = forge.util.createBuffer(pfxBuffer.toString('binary'));
+    const p12Asn1 = forge.asn1.fromDer(p12Der);
+    const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, password);
 
-    const key = pfx.export({ type: 'pkcs8', format: 'pem' }) as string;
+    // Chave privada pode estar em pkcs8ShroudedKeyBag (padrao ICP-Brasil) ou keyBag.
+    const keyBags =
+      p12.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag })[forge.pki.oids.pkcs8ShroudedKeyBag] ??
+      p12.getBags({ bagType: forge.pki.oids.keyBag })[forge.pki.oids.keyBag];
+    const keyBag = keyBags?.[0];
+    if (!keyBag?.key) throw new CertificateError('Chave privada nao encontrada no PFX');
+    const key = forge.pki.privateKeyToPem(keyBag.key);
 
-    // Extract certificate from PFX using X509Certificate
     const certs = this.extractCertificatesFromPfx(pfxBuffer, password);
-
     if (certs.length === 0) {
       throw new CertificateError('Nenhum certificado encontrado no arquivo PFX');
     }
-
     const cert = certs[0];
     const chain = certs.slice(1);
 

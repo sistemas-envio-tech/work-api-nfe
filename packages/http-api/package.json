@@ -1,0 +1,29 @@
+{
+  "name": "@acbr-node/http-api",
+  "version": "0.1.0",
+  "description": "HTTP microservice wrapping @acbr-node/nfe for the work-manager ERP",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@acbr-node/core": "workspace:*",
+    "@acbr-node/nfe": "workspace:*",
+    "dotenv": "^16.4.0",
+    "express": "^4.21.0",
+    "helmet": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "MIT"
+}

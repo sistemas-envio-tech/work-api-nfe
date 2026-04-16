@@ -7,12 +7,12 @@
 const UF_OFFSETS: Record<string, string> = {
   // UTC-5 (Acre)
   AC: '-05:00',
-  // UTC-4 (Amazonas, Roraima, Rondônia, Mato Grosso)
-  AM: '-04:00', RR: '-04:00', RO: '-04:00', MT: '-04:00',
+  // UTC-4 (Amazonas, Roraima, Rondônia, Mato Grosso, Mato Grosso do Sul)
+  AM: '-04:00', RR: '-04:00', RO: '-04:00', MT: '-04:00', MS: '-04:00',
   // UTC-3 (Maioria dos estados)
   AL: '-03:00', AP: '-03:00', BA: '-03:00', CE: '-03:00',
   DF: '-03:00', ES: '-03:00', GO: '-03:00', MA: '-03:00',
-  MG: '-03:00', MS: '-03:00', PA: '-03:00', PB: '-03:00',
+  MG: '-03:00', PA: '-03:00', PB: '-03:00',
   PE: '-03:00', PI: '-03:00', PR: '-03:00', RJ: '-03:00',
   RN: '-03:00', RS: '-03:00', SC: '-03:00', SE: '-03:00',
   SP: '-03:00', TO: '-03:00',

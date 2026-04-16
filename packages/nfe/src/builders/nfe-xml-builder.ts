@@ -10,6 +10,7 @@ import { buildTransp } from './transp-builder.js';
 import { buildCobr } from './cobr-builder.js';
 import { buildPag } from './pag-builder.js';
 import { buildInfAdic } from './infadic-builder.js';
+import { buildInfRespTec } from './resp-tec-builder.js';
 
 /**
  * Monta o XML completo da NFe a partir dos dados tipados
@@ -63,12 +64,7 @@ export function buildNFeXml(nfe: NFe): { xml: string; chaveAcesso: string } {
   }
 
   if (nfe.infRespTec) {
-    infNFe.infRespTec = {
-      CNPJ: nfe.infRespTec.CNPJ,
-      xContato: nfe.infRespTec.xContato,
-      email: nfe.infRespTec.email,
-      fone: nfe.infRespTec.fone,
-    };
+    infNFe.infRespTec = buildInfRespTec(nfe.infRespTec, chaveAcesso);
   }
 
   const xml = XmlBuilder.build('NFe', { infNFe }, NFE_NAMESPACE);

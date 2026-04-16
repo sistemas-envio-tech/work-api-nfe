@@ -78,18 +78,20 @@ export class XmlBuilder {
    */
   static buildEnviNFe(signedNFeXmls: string[], idLote: string, indSinc: 0 | 1 = 1): string {
     const NFE_NS = 'http://www.portalfiscal.inf.br/nfe';
-    const doc = create({ version: '1.0', encoding: 'UTF-8' });
-    const root = doc.ele(NFE_NS, 'enviNFe');
-    root.att('xmlns', NFE_NS);
-    root.att('versao', '4.00');
-    root.ele('idLote').txt(idLote);
-    root.ele('indSinc').txt(String(indSinc));
 
-    for (const nfeXml of signedNFeXmls) {
-      // Inserir NFe assinada como raw XML
-      root.import(fragment().ele(nfeXml));
-    }
+    // Construir via string concatenation para preservar assinatura digital intacta
+    // (DOM manipulation pode alterar canonicalização e invalidar a assinatura)
+    const nfeXmlsConcat = signedNFeXmls
+      .map(xml => xml.replace(/<\?xml[^?]*\?>\s*/g, '')) // remover declaração XML
+      .join('');
 
-    return doc.end({ prettyPrint: false });
+    return [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      `<enviNFe xmlns="${NFE_NS}" versao="4.00">`,
+      `<idLote>${idLote}</idLote>`,
+      `<indSinc>${indSinc}</indSinc>`,
+      nfeXmlsConcat,
+      '</enviNFe>',
+    ].join('');
   }
 }

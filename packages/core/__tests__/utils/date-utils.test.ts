@@ -9,9 +9,10 @@ describe('Timezone Offset', () => {
     expect(getTimezoneOffset('PR')).toBe('-03:00');
   });
 
-  it('should return -04:00 for AM, RR, RO, MT', () => {
+  it('should return -04:00 for AM, RR, RO, MT, MS', () => {
     expect(getTimezoneOffset('AM')).toBe('-04:00');
     expect(getTimezoneOffset('MT')).toBe('-04:00');
+    expect(getTimezoneOffset('MS')).toBe('-04:00');
   });
 
   it('should return -05:00 for AC', () => {

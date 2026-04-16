@@ -434,13 +434,8 @@ export class NFeClient {
     });
 
     const idLote = Date.now().toString().slice(-15);
-    const envEventoXml = buildEnvEventoXml([signedEvento], idLote);
-
-    // Inserir evento assinado no envelope (replace closing tag)
-    const finalXml = envEventoXml.replace(
-      '</envEvento>',
-      `${signedEvento}</envEvento>`
-    );
+    // buildEnvEventoXml já insere os eventos assinados dentro do envelope
+    const finalXml = buildEnvEventoXml([signedEvento], idLote);
 
     const url = getSefazUrl(
       { uf: this.config.uf, ambiente: this.ambienteStr },

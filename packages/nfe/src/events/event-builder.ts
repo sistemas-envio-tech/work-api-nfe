@@ -2,20 +2,25 @@ import { XmlBuilder, type XmlObject } from '@acbr-node/core';
 import { NFE_NAMESPACE, NFE_VERSAO } from '../types/nfe.js';
 
 /**
- * Monta envelope genérico de evento NFe
+ * Monta envelope completo envEvento com eventos assinados dentro
+ *
+ * Usa string concatenation para preservar assinatura digital dos eventos
  */
 export function buildEnvEventoXml(
-  eventos: string[],
+  signedEventosXmls: string[],
   idLote: string
 ): string {
-  // Eventos já assinados são inseridos via raw XML
-  const envEvento: XmlObject = {
-    '@versao': NFE_VERSAO,
-    '@xmlns': NFE_NAMESPACE,
-    idLote,
-  };
+  const eventosConcat = signedEventosXmls
+    .map(xml => xml.replace(/<\?xml[^?]*\?>\s*/g, ''))
+    .join('');
 
-  return XmlBuilder.build('envEvento', envEvento, NFE_NAMESPACE);
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    `<envEvento xmlns="${NFE_NAMESPACE}" versao="${NFE_VERSAO}">`,
+    `<idLote>${idLote}</idLote>`,
+    eventosConcat,
+    '</envEvento>',
+  ].join('');
 }
 
 /**

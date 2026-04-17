@@ -6,6 +6,7 @@ import { errorHandler } from './middleware/error-handler.js';
 import { healthRouter } from './routes/health.js';
 import { consultaNfeRouter } from './routes/consulta-nfe.js';
 import { manifestacaoRouter } from './routes/manifestacao.js';
+import { danfeRouter } from './routes/danfe.js';
 
 const app: Express = express();
 
@@ -16,6 +17,7 @@ app.use(authMiddleware);
 app.use('/health', healthRouter);
 app.use('/consulta-nfe', consultaNfeRouter);
 app.use('/manifestacao', manifestacaoRouter);
+app.use('/danfe', danfeRouter);
 
 app.use(errorHandler);
 

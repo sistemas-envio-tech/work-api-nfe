@@ -59,6 +59,7 @@ export async function buildNFeClient(payload: NFeClientPayload): Promise<NFeClie
     certificado: { pfxBuffer, password: payload.certificado.senha },
     logger,
     logXml: payload.logXml ?? env.logXml,
+    rejectUnauthorized: !env.insecureTls,
   });
 
   await client.init();

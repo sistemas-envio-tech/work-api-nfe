@@ -21,7 +21,15 @@ export const env = {
   internalToken: process.env.INTERNAL_TOKEN || '',
   logLevel: (process.env.LOG_LEVEL || 'info') as 'debug' | 'info' | 'warn' | 'error',
   logXml: process.env.LOG_XML === 'true',
+  // Em dev, Node pode nao ter a cadeia ICP-Brasil no truststore e SEFAZ
+  // rejeitar com "unable to get local issuer certificate". Setar pra true
+  // APENAS em dev; em prod use NODE_EXTRA_CA_CERTS com o bundle ICP-Brasil.
+  insecureTls: process.env.NFE_API_INSECURE_TLS === 'true',
 };
+
+if (env.insecureTls) {
+  console.warn('[http-api] NFE_API_INSECURE_TLS=true — verificacao da cadeia TLS desabilitada (INSEGURO em producao)');
+}
 
 if (!env.internalToken) {
   console.warn('[http-api] INTERNAL_TOKEN nao definido — usando fallback (INSEGURO em producao)');

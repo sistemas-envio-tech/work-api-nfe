@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@acbr-node/core": "workspace:*",
+    "@acbr-node/danfe": "workspace:*",
     "@acbr-node/nfe": "workspace:*",
     "dotenv": "^16.4.0",
     "express": "^4.21.0",

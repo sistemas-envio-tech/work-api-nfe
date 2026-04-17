@@ -87,12 +87,20 @@ export class CertificateManager {
     pfxBuffer: Buffer,
     password: string
   ): { key: string; cert: string; chain: string[] } {
-    // Node 21+ removeu `format: 'pkcs12'` do crypto.createPrivateKey — usa node-forge.
+    // Node 21+ removeu 'format: pkcs12' do crypto — parse PKCS12 via node-forge
+    // (chave + cert + chain) numa passada so.
     const p12Der = forge.util.createBuffer(pfxBuffer.toString('binary'));
     const p12Asn1 = forge.asn1.fromDer(p12Der);
-    const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, password);
+    let p12: forge.pkcs12.Pkcs12Pfx;
+    try {
+      p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, password);
+    } catch (err) {
+      throw new CertificateError(
+        `Falha ao abrir PFX (senha incorreta ou arquivo corrompido): ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
 
-    // Chave privada pode estar em pkcs8ShroudedKeyBag (padrao ICP-Brasil) ou keyBag.
+    // Chave privada: pkcs8ShroudedKeyBag (padrao ICP-Brasil) ou keyBag.
     const keyBags =
       p12.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag })[forge.pki.oids.pkcs8ShroudedKeyBag] ??
       p12.getBags({ bagType: forge.pki.oids.keyBag })[forge.pki.oids.keyBag];
@@ -100,14 +108,15 @@ export class CertificateManager {
     if (!keyBag?.key) throw new CertificateError('Chave privada nao encontrada no PFX');
     const key = forge.pki.privateKeyToPem(keyBag.key);
 
-    const certs = this.extractCertificatesFromPfx(pfxBuffer, password);
-    if (certs.length === 0) {
-      throw new CertificateError('Nenhum certificado encontrado no arquivo PFX');
-    }
-    const cert = certs[0];
-    const chain = certs.slice(1);
+    // Certificados (entidade final + CA chain).
+    const certBags = p12.getBags({ bagType: forge.pki.oids.certBag })[forge.pki.oids.certBag] ?? [];
+    if (certBags.length === 0) throw new CertificateError('Nenhum certificado encontrado no arquivo PFX');
 
-    return { key, cert, chain };
+    const pemCerts = certBags
+      .filter((b) => b.cert)
+      .map((b) => forge.pki.certificateToPem(b.cert!).replace(/\r\n/g, '\n').trim());
+
+    return { key, cert: pemCerts[0], chain: pemCerts.slice(1) };
   }
 
   private extractCertificatesFromPfx(pfxBuffer: Buffer, password: string): string[] {

@@ -8,6 +8,10 @@ import type { LoggerInterface } from '../logging/logger.js';
 export class SoapClient {
   private options: Required<SoapClientOptions>;
   private secureContext: tls.SecureContext | null = null;
+  private clientCertPem: string | null = null;
+  private clientKeyPem: string | null = null;
+  private clientPfxBuffer: Buffer | null = null;
+  private clientPfxPassphrase: string | null = null;
   private logger?: LoggerInterface;
 
   constructor(options?: SoapClientOptions & { logger?: LoggerInterface }) {
@@ -26,11 +30,19 @@ export class SoapClient {
   configureCertificate(cert: string, key: string): void;
   configureCertificate(certOrPfx: Buffer | string, keyOrPassphrase: string): void {
     if (Buffer.isBuffer(certOrPfx)) {
+      this.clientPfxBuffer = certOrPfx;
+      this.clientPfxPassphrase = keyOrPassphrase;
+      this.clientCertPem = null;
+      this.clientKeyPem = null;
       this.secureContext = tls.createSecureContext({
         pfx: certOrPfx,
         passphrase: keyOrPassphrase,
       });
     } else {
+      this.clientCertPem = certOrPfx;
+      this.clientKeyPem = keyOrPassphrase;
+      this.clientPfxBuffer = null;
+      this.clientPfxPassphrase = null;
       this.secureContext = tls.createSecureContext({
         cert: certOrPfx,
         key: keyOrPassphrase,
@@ -43,22 +55,33 @@ export class SoapClient {
    */
   async send(request: SoapRequest, serviceName?: string): Promise<SoapResponse> {
     const wsdlNamespace = serviceName ? WSDL_NAMESPACES[serviceName] : '';
-    const soapXml = buildSoapEnvelope(request.body, wsdlNamespace || request.action);
+    // Nome da operacao = ultimo segmento do SOAPAction (ex: "nfeDistDFeInteresse").
+    // SEFAZ NFe 4.00 espera o elemento wrapper da operacao no SOAP body.
+    const operationName = request.action.split('/').pop() || '';
+    const soapXml = buildSoapEnvelope(request.body, wsdlNamespace || request.action, operationName);
 
     this.logger?.debug(`SOAP Request to ${request.url}`, { action: request.action });
 
     const startTime = Date.now();
 
+    // SOAP 1.2 requer o action como parametro do Content-Type, nao como header separado.
+    // Header SOAPAction e SOAP 1.1. SEFAZ DistribuicaoDFe e demais servicos NFe 4.00
+    // rejeitam com 500 "Unable to handle request without a valid action parameter"
+    // se nao for enviado dessa forma.
+    const contentType = request.contentType
+      || `application/soap+xml; charset=utf-8; action="${request.action}"`;
+
     try {
       const response = await this.httpPost(request.url, soapXml, {
-        'Content-Type': request.contentType || 'application/soap+xml; charset=utf-8',
-        'SOAPAction': request.action,
+        'Content-Type': contentType,
       });
 
       const responseTime = Date.now() - startTime;
       this.logger?.info(`SOAP Response ${response.statusCode} in ${responseTime}ms`);
 
       if (response.statusCode >= 400) {
+        this.logger?.warn(`SOAP ${response.statusCode} body (${response.body.length}b): ${response.body.slice(0, 2000)}`);
+        this.logger?.warn(`SOAP ${response.statusCode} request body (first 2000b): ${soapXml.slice(0, 2000)}`);
         throw new SoapError(
           `HTTP ${response.statusCode}`,
           response.statusCode,
@@ -100,9 +123,15 @@ export class SoapClient {
         rejectUnauthorized: this.options.rejectUnauthorized,
       };
 
-      // mTLS: usar contexto seguro com certificado digital
-      if (this.secureContext) {
-        (options as any).secureContext = this.secureContext;
+      // mTLS: passar cert/key (ou pfx) diretamente nas opcoes do https.request.
+      // `secureContext` nao e uma option padrao do https.request em todas versoes
+      // do Node — cert/key/pfx sao as vias suportadas oficialmente.
+      if (this.clientCertPem && this.clientKeyPem) {
+        (options as any).cert = this.clientCertPem;
+        (options as any).key = this.clientKeyPem;
+      } else if (this.clientPfxBuffer) {
+        (options as any).pfx = this.clientPfxBuffer;
+        if (this.clientPfxPassphrase) (options as any).passphrase = this.clientPfxPassphrase;
       }
 
       const req = https.request(options, (res) => {

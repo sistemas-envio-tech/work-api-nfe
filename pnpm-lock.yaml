@@ -76,6 +76,9 @@ importers:
       '@acbr-node/core':
         specifier: workspace:*
         version: link:../core
+      '@acbr-node/danfe':
+        specifier: workspace:*
+        version: link:../danfe
       '@acbr-node/nfe':
         specifier: workspace:*
         version: link:../nfe

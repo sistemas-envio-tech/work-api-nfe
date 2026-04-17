@@ -58,6 +58,12 @@ export interface NFeClientConfig {
   validar?: boolean;
   /** Logar XML request/response sanitizado (padrão: false) */
   logXml?: boolean;
+  /**
+   * Verificar a cadeia TLS do servidor SEFAZ (padrão: true).
+   * Desabilite APENAS em desenvolvimento quando o Node não tem a cadeia
+   * ICP-Brasil no truststore. Em produção, configure NODE_EXTRA_CA_CERTS.
+   */
+  rejectUnauthorized?: boolean;
 }
 
 export interface EmpresaConfig {
@@ -100,6 +106,7 @@ export class NFeClient {
     this.logger = config.logger ?? createLogger(false);
     this.soapClient = new SoapClient({
       timeout: config.timeout ?? 30000,
+      rejectUnauthorized: config.rejectUnauthorized ?? true,
       logger: this.logger,
     });
     this.circuitBreaker = new CircuitBreaker(config.circuitBreakerOptions);
@@ -119,17 +126,10 @@ export class NFeClient {
     // Verificar expiração do certificado
     this.certWatcher.check(certData.info);
 
-    // Configurar mTLS com PFX original
-    if (this.config.certificado.pfxBuffer) {
-      this.soapClient.configureCertificate(
-        this.config.certificado.pfxBuffer,
-        this.config.certificado.password
-      );
-    } else if (this.config.certificado.pfxPath) {
-      const { readFileSync } = await import('node:fs');
-      const pfxBuffer = readFileSync(this.config.certificado.pfxPath);
-      this.soapClient.configureCertificate(pfxBuffer, this.config.certificado.password);
-    }
+    // Configurar mTLS com PEM extraido (mais estavel que PFX cru no Node 21+,
+    // onde `tls.createSecureContext({ pfx })` pode falhar silenciosamente em
+    // certos cenarios de certificados ICP-Brasil).
+    this.soapClient.configureCertificate(certData.certificate, certData.privateKey);
 
     this.initialized = true;
   }

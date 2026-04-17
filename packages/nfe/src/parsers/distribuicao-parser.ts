@@ -85,10 +85,19 @@ function decompressGzip(base64Content: string): string {
 function findDeep(obj: any, key: string): any {
   if (!obj || typeof obj !== 'object') return undefined;
   if (Array.isArray(obj)) obj = obj[0];
-  if (key in obj) return obj[key];
+  // Primeiro, procura no nivel atual (match direto ou por local-name de ns prefixado)
   for (const k of Object.keys(obj)) {
     const local = k.includes(':') ? k.split(':').pop() : k;
-    if (local === key) return obj[k];
+    if (k === key || local === key) return obj[k];
+  }
+  // Recursa em filhos (wrapper da operacao pode aninhar varios niveis:
+  // nfeDistDFeInteresseResponse > nfeDistDFeInteresseResult > retDistDFeInt).
+  for (const k of Object.keys(obj)) {
+    const v = obj[k];
+    if (v && typeof v === 'object') {
+      const found = findDeep(v, key);
+      if (found !== undefined) return found;
+    }
   }
   return undefined;
 }

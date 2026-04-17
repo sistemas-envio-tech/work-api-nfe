@@ -7,6 +7,7 @@ import { healthRouter } from './routes/health.js';
 import { consultaNfeRouter } from './routes/consulta-nfe.js';
 import { manifestacaoRouter } from './routes/manifestacao.js';
 import { danfeRouter } from './routes/danfe.js';
+import { certificadoRouter } from './routes/certificado.js';
 
 const app: Express = express();
 
@@ -18,6 +19,7 @@ app.use('/health', healthRouter);
 app.use('/consulta-nfe', consultaNfeRouter);
 app.use('/manifestacao', manifestacaoRouter);
 app.use('/danfe', danfeRouter);
+app.use('/certificado', certificadoRouter);
 
 app.use(errorHandler);
 

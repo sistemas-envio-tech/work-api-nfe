@@ -44,7 +44,10 @@ export class CertificateManager {
   get daysUntilExpiry(): number {
     if (!this.certInfo) return 0;
     const diff = this.certInfo.validTo.getTime() - Date.now();
-    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+    // Retorna valor negativo quando ja expirou (clients usam Math.abs para
+    // exibir "Expirado ha X dias"). Antes o Math.max(0, ...) clampava para 0
+    // e qualquer cert expirado aparecia como "0d".
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
   }
 
   getPrivateKey(): string {

@@ -16,7 +16,7 @@ for (const p of candidates) {
 }
 
 export const env = {
-  host: process.env.HTTP_API_HOST || '127.0.0.1',
+  host: process.env.HTTP_API_HOST || '0.0.0.0',
   port: parseInt(process.env.HTTP_API_PORT || '3002', 10),
   internalToken: process.env.INTERNAL_TOKEN || '',
   logLevel: (process.env.LOG_LEVEL || 'info') as 'debug' | 'info' | 'warn' | 'error',

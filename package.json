@@ -5,6 +5,7 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
+    "start": "node packages/http-api/dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "ACBR_INTEGRATION=true vitest run --project integration",

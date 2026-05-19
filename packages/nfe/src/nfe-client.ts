@@ -243,10 +243,18 @@ export class NFeClient {
     const response = await this.sendToSefaz(url, enviNFeXml, autorizacaoServ);
     const resultado = parseAutorizacao(response);
 
+    // SEMPRE incluir o XML enviado (signedXml). Util pro cliente arquivar
+    // mesmo em rejeicao (debug do leiaute). Antes so vinha xmlAutorizado
+    // quando cStat=100 — em rejeicao nao havia como o cliente recuperar o
+    // XML pra investigar o que foi enviado.
+    resultado.xmlEnviado = signedXml;
+
     // Se assíncrono, fazer polling pelo recibo
     if (!sincrono && resultado.nRec && resultado.cStat === '103') {
       this.logger.info(`Lote recebido. Recibo: ${resultado.nRec}. Consultando...`);
-      return this.consultarRecibo(resultado.nRec, signedXml, chaveAcesso, modelo);
+      const consultado = await this.consultarRecibo(resultado.nRec, signedXml, chaveAcesso, modelo);
+      consultado.xmlEnviado = signedXml;
+      return consultado;
     }
 
     // Se síncrono e autorizado, montar nfeProc

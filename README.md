@@ -14,6 +14,25 @@ emissao de documentos fiscais brasileiros (NF-e e NFC-e).
 | `@acbr-node/danfe` | Geracao do DANFE em PDF |
 | `@acbr-node/http-api` | Microservice Express que expoe a lib (deploy Railway) |
 
+## Principios arquiteturais
+
+Este microservice e **stateless por design** — recebe JSON, traduz para SOAP
+SEFAZ, devolve JSON. Nao persiste nada.
+
+| Tem | Nao tem |
+| --- | --- |
+| ✅ Validacao SEFAZ (leiaute 4.00, Zod schemas, regras NFe/NFCe) | ❌ Banco de dados (zero ORMs, drivers SQL/NoSQL) |
+| ✅ Logs em stdout (prefixo `[http-api]`, requestId por request) | ❌ Cache server-side compartilhado (Redis/Memcached) |
+| ✅ Certificado / CSC / dados da empresa enviados em CADA request | ❌ Filas / job queues (BullMQ/Kafka/RabbitMQ) |
+| ✅ Retry + circuit breaker contra SEFAZ (mantido em memoria do processo) | ❌ Sessao / cookies / state entre requests |
+
+**Persistencia** (XMLs autorizados, NFes emitidas, sequencia de numeracao,
+historico de eventos) e responsabilidade **exclusiva do consumer** (ex.:
+work-manager ERP).
+
+Esta regra e validada mecanicamente pelo CI via [`pnpm check:stateless`](scripts/check-stateless.mjs)
+— qualquer dep de DB/ORM/cache/queue adicionada ao `package.json` quebra o build.
+
 ## Requisitos
 
 - Node.js >= 20 (ver `.nvmrc`)

@@ -18,7 +18,8 @@
     "baseline:tsc": "node scripts/check-tsc-baseline.mjs --update",
     "check:routes": "node scripts/check-routes.mjs",
     "check:auth": "node scripts/check-auth.mjs",
-    "validate": "pnpm typecheck && pnpm lint && pnpm check:asany && pnpm check:tsc && pnpm check:routes && pnpm check:auth && pnpm test && pnpm build",
+    "check:stateless": "node scripts/check-stateless.mjs",
+    "validate": "pnpm typecheck && pnpm lint && pnpm check:asany && pnpm check:tsc && pnpm check:routes && pnpm check:auth && pnpm check:stateless && pnpm test && pnpm build",
     "prepare": "husky",
     "clean": "turbo clean && rm -rf node_modules"
   },

@@ -53,7 +53,7 @@ function buildProd(prod: Produto): XmlObject {
 }
 
 /**
- * Formata nÃºmero decimal com casas fixas (sem notaÃ§Ã£o cientÃ­fica)
+ * Formata número decimal com casas fixas (sem notação científica)
  */
 export function formatarDecimal(value: number, decimals: number): string {
   return value.toFixed(decimals);

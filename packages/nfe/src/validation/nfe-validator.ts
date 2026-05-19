@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { ValidationError } from '@acbr-node/core';
 import type { NFe } from '../types/nfe.js';
 
-// â”€â”€â”€ Schemas Zod â”€â”€â”€
+// ─── Schemas Zod ───
 //
 // Os schemas espelham as interfaces em ../types/nfe.ts. Para grupos cujo
-// shape varia muito (ICMS/PIS/COFINS dentro de imposto â€” uma chave por
+// shape varia muito (ICMS/PIS/COFINS dentro de imposto — uma chave por
 // CST/CSOSN com formato diferente), usamos z.record(...) ao inves de
 // discriminated union exaustivo. Isso ainda bloqueia tipos errados ("imposto
 // como string", "ICMS como number") sem listar 30+ variantes de CST.
@@ -18,7 +18,7 @@ const enderecoSchema = z.object({
   cMun: z.number().int(),
   xMun: z.string().min(1).max(60),
   UF: z.string().length(2),
-  CEP: z.string().regex(/^\d{8}$/, 'CEP deve ter 8 dÃ­gitos'),
+  CEP: z.string().regex(/^\d{8}$/, 'CEP deve ter 8 dígitos'),
   cPais: z.number().int().optional(),
   xPais: z.string().optional(),
   fone: z.string().optional(),
@@ -35,7 +35,7 @@ const emitenteSchema = z.object({
   IM: z.string().optional(),
   CNAE: z.string().optional(),
   CRT: z.union([z.literal(1), z.literal(2), z.literal(3)]),
-}).refine(d => d.CNPJ || d.CPF, { message: 'CNPJ ou CPF do emitente Ã© obrigatÃ³rio' });
+}).refine(d => d.CNPJ || d.CPF, { message: 'CNPJ ou CPF do emitente é obrigatório' });
 
 const destinatarioSchema = z.object({
   CNPJ: z.string().regex(/^\d{14}$/).optional(),
@@ -57,9 +57,9 @@ const produtoSchema = z.object({
   cProd: z.string().min(1).max(60),
   cEAN: z.string(),
   xProd: z.string().min(1).max(120),
-  NCM: z.string().regex(/^\d{8}$/, 'NCM deve ter 8 dÃ­gitos'),
+  NCM: z.string().regex(/^\d{8}$/, 'NCM deve ter 8 dígitos'),
   CEST: z.string().optional(),
-  CFOP: z.string().regex(/^\d{4}$/, 'CFOP deve ter 4 dÃ­gitos'),
+  CFOP: z.string().regex(/^\d{4}$/, 'CFOP deve ter 4 dígitos'),
   uCom: z.string().min(1).max(6),
   qCom: z.number().min(0),
   vUnCom: z.number().min(0),
@@ -232,7 +232,7 @@ const nfeSchema = z.object({
     prod: produtoSchema,
     imposto: impostoSchema,
     infAdProd: z.string().optional(),
-  })).min(1, 'NFe deve ter pelo menos 1 item').max(990, 'NFe pode ter no mÃ¡ximo 990 itens'),
+  })).min(1, 'NFe deve ter pelo menos 1 item').max(990, 'NFe pode ter no máximo 990 itens'),
   total: totalSchema,
   transp: transporteSchema,
   cobr: cobrancaSchema.optional(),
@@ -246,7 +246,7 @@ const nfeSchema = z.object({
 
 /**
  * Valida dados da NFe usando schemas Zod
- * @throws ValidationError com detalhes dos campos invÃ¡lidos
+ * @throws ValidationError com detalhes dos campos inválidos
  */
 export function validarNFe(nfe: unknown): void {
   const result = nfeSchema.safeParse(nfe);
@@ -259,7 +259,7 @@ export function validarNFe(nfe: unknown): void {
     const firstField = issues[0]?.path.join('.') || 'unknown';
 
     throw new ValidationError(
-      `ValidaÃ§Ã£o NFe falhou: ${details[0]}`,
+      `Validação NFe falhou: ${details[0]}`,
       firstField,
       details
     );
@@ -267,7 +267,7 @@ export function validarNFe(nfe: unknown): void {
 }
 
 /**
- * ValidaÃ§Ãµes de regras de negÃ³cio (nÃ£o cobertas pelo schema)
+ * Validações de regras de negócio (não cobertas pelo schema)
  */
 export function validarRegrasNegocio(nfe: NFe): void {
   const errors: string[] = [];
@@ -284,14 +284,14 @@ export function validarRegrasNegocio(nfe: NFe): void {
   }
 
   if (nfe.ide?.tpEmis > 1 && !nfe.ide?.xJust) {
-    errors.push('ide.xJust Ã© obrigatÃ³rio para emissÃ£o em contingÃªncia');
+    errors.push('ide.xJust é obrigatório para emissão em contingência');
   }
 
   if (nfe.ide?.xJust && nfe.ide.xJust.length < 15) {
-    errors.push('ide.xJust deve ter no mÃ­nimo 15 caracteres');
+    errors.push('ide.xJust deve ter no mínimo 15 caracteres');
   }
 
-  // ── Regras especificas de NFCe (modelo 65) ──
+  // -- Regras especificas de NFCe (modelo 65) --
   // Conforme leiaute SEFAZ NFCe v4.00, certas restricoes que nao se aplicam a NFe.
   if (nfe.ide?.mod === 65) {
     if (nfe.ide.idDest !== 1) {
@@ -314,13 +314,13 @@ export function validarRegrasNegocio(nfe: NFe): void {
   if (nfe.ide?.tpAmb === 2 && nfe.dest?.xNome) {
     const expected = 'NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL';
     if (nfe.dest.xNome !== expected) {
-      errors.push(`Em homologaÃ§Ã£o, dest.xNome deve ser "${expected}"`);
+      errors.push(`Em homologação, dest.xNome deve ser "${expected}"`);
     }
   }
 
   if (errors.length > 0) {
     throw new ValidationError(
-      `Regras de negÃ³cio: ${errors[0]}`,
+      `Regras de negócio: ${errors[0]}`,
       'businessRules',
       errors
     );

@@ -1,13 +1,13 @@
 /**
- * UtilitÃ¡rios de data para NFe
- * Todas as datas da NFe devem usar o formato ISO 8601 com offset de fuso horÃ¡rio brasileiro
+ * Utilitários de data para NFe
+ * Todas as datas da NFe devem usar o formato ISO 8601 com offset de fuso horário brasileiro
  */
 
-/** Offsets por UF (Brasil aboliu horÃ¡rio de verÃ£o em 2019) */
+/** Offsets por UF (Brasil aboliu horário de verão em 2019) */
 const UF_OFFSETS: Record<string, string> = {
   // UTC-5 (Acre)
   AC: '-05:00',
-  // UTC-4 (Amazonas, Roraima, RondÃ´nia, Mato Grosso, Mato Grosso do Sul)
+  // UTC-4 (Amazonas, Roraima, Rondônia, Mato Grosso, Mato Grosso do Sul)
   AM: '-04:00', RR: '-04:00', RO: '-04:00', MT: '-04:00', MS: '-04:00',
   // UTC-3 (Maioria dos estados)
   AL: '-03:00', AP: '-03:00', BA: '-03:00', CE: '-03:00',
@@ -21,14 +21,14 @@ const UF_OFFSETS: Record<string, string> = {
 };
 
 /**
- * Retorna o offset de fuso horÃ¡rio para a UF
+ * Retorna o offset de fuso horário para a UF
  */
 export function obterOffsetTimezone(uf: string): string {
   return UF_OFFSETS[uf.toUpperCase()] || '-03:00';
 }
 
 /**
- * Formata data no padrÃ£o NFe: yyyy-MM-ddTHH:mm:ssXXX
+ * Formata data no padrão NFe: yyyy-MM-ddTHH:mm:ssXXX
  */
 export function formatarDataNFe(date: Date, uf: string = 'SP'): string {
   const offset = obterOffsetTimezone(uf);

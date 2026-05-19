@@ -18,7 +18,7 @@ import { buildInfRespTec } from './resp-tec-builder.js';
  * Estrutura: NFe > infNFe (versao, Id) > ide, emit, dest, det[], total, transp, cobr, pag, infAdic
  */
 export function buildNFeXml(nfe: NFe): { xml: string; chaveAcesso: string } {
-  // Gerar cÃ³digo numÃ©rico se nÃ£o informado
+  // Gerar código numérico se não informado
   const cNF = nfe.ide.cNF ?? gerarCodigoAleatorio();
 
   // Gerar chave de acesso
@@ -84,7 +84,7 @@ export function buildEnviNFeXml(
 }
 
 /**
- * Monta o XML de consulta de status do serviÃ§o
+ * Monta o XML de consulta de status do serviço
  */
 export function buildConsStatServXml(tpAmb: number, cUF: number): string {
   return XmlBuilder.build('consStatServ', {
@@ -110,7 +110,7 @@ export function buildConsSitNFeXml(tpAmb: number, chNFe: string): string {
 }
 
 /**
- * Monta o XML de inutilizaÃ§Ã£o
+ * Monta o XML de inutilização
  */
 export function buildInutNFeXml(params: {
   tpAmb: number;

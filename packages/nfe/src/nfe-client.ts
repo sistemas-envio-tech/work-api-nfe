@@ -59,14 +59,14 @@ export interface NFeClientConfig {
   circuitBreakerOptions?: Partial<CircuitBreakerOptions>;
   timeout?: number;
   contingencia?: boolean;
-  /** Ativar validaÃ§Ã£o Zod antes de gerar XML (padrÃ£o: true) */
+  /** Ativar validação Zod antes de gerar XML (padrão: true) */
   validar?: boolean;
-  /** Logar XML request/response sanitizado (padrÃ£o: false) */
+  /** Logar XML request/response sanitizado (padrão: false) */
   logXml?: boolean;
   /**
-   * Verificar a cadeia TLS do servidor SEFAZ (padrÃ£o: true).
-   * Desabilite APENAS em desenvolvimento quando o Node nÃ£o tem a cadeia
-   * ICP-Brasil no truststore. Em produÃ§Ã£o, configure NODE_EXTRA_CA_CERTS.
+   * Verificar a cadeia TLS do servidor SEFAZ (padrão: true).
+   * Desabilite APENAS em desenvolvimento quando o Node não tem a cadeia
+   * ICP-Brasil no truststore. Em produção, configure NODE_EXTRA_CA_CERTS.
    */
   rejectUnauthorized?: boolean;
 }
@@ -108,7 +108,7 @@ export class NFeClient {
     return obterCodigoUF(this.config.uf);
   }
 
-  /** Indica se a contingÃªncia estÃ¡ ativa */
+  /** Indica se a contingência está ativa */
   get contingenciaAtiva(): boolean {
     return this._contingenciaAtiva || this.config.contingencia === true;
   }
@@ -137,7 +137,7 @@ export class NFeClient {
     const certData = await this.certManager.load(this.config.certificado);
     this.logger.info(`Certificado carregado: ${certData.info.subject.CN} (expira em ${certData.daysUntilExpiry} dias)`);
 
-    // Verificar expiraÃ§Ã£o do certificado
+    // Verificar expiração do certificado
     this.certWatcher.check(certData.info);
 
     // Configurar mTLS com PEM extraido (mais estavel que PFX cru no Node 21+,
@@ -167,7 +167,7 @@ export class NFeClient {
     throw new SefazError('999', `Modelo desconhecido na chave: ${mod} (esperado 55 ou 65)`);
   }
 
-  // â”€â”€â”€ Status do ServiÃ§o â”€â”€â”€
+  // ─── Status do Serviço ───
 
   async statusServico(modelo: ModeloDocFiscal = 55): Promise<RetornoStatusServico> {
     await this.ensureInit();
@@ -183,7 +183,7 @@ export class NFeClient {
     return parseStatusServico(response);
   }
 
-  // â”€â”€â”€ AutorizaÃ§Ã£o (EmissÃ£o) â”€â”€â”€
+  // ─── Autorização (Emissão) ───
 
   async autorizarNFe(nfe: NFe, sincrono: boolean = true): Promise<RetornoAutorizacao> {
     await this.ensureInit();
@@ -243,13 +243,13 @@ export class NFeClient {
     const response = await this.sendToSefaz(url, enviNFeXml, autorizacaoServ);
     const resultado = parseAutorizacao(response);
 
-    // Se assÃ­ncrono, fazer polling pelo recibo
+    // Se assíncrono, fazer polling pelo recibo
     if (!sincrono && resultado.nRec && resultado.cStat === '103') {
       this.logger.info(`Lote recebido. Recibo: ${resultado.nRec}. Consultando...`);
       return this.consultarRecibo(resultado.nRec, signedXml, chaveAcesso, modelo);
     }
 
-    // Se sÃ­ncrono e autorizado, montar nfeProc
+    // Se síncrono e autorizado, montar nfeProc
     if (resultado.protNFe && resultado.protNFe.cStat === '100') {
       resultado.xmlAutorizado = this.buildNFeProc(signedXml, resultado.protNFe);
       this.logger.info(`${modelo === 65 ? 'NFCe' : 'NFe'} autorizada! Protocolo: ${resultado.protNFe.nProt}`);
@@ -317,7 +317,7 @@ export class NFeClient {
     throw new SefazError('105', 'Timeout aguardando processamento do lote');
   }
 
-  // â”€â”€â”€ Consulta Protocolo â”€â”€â”€
+  // ─── Consulta Protocolo ───
 
   async consultarProtocolo(chNFe: string): Promise<RetornoConsultaProtocolo> {
     await this.ensureInit();
@@ -334,7 +334,7 @@ export class NFeClient {
     return parseConsultaProtocolo(response);
   }
 
-  // â”€â”€â”€ InutilizaÃ§Ã£o â”€â”€â”€
+  // ─── Inutilização ───
 
   async inutilizar(params: {
     ano: number;
@@ -376,7 +376,7 @@ export class NFeClient {
     return parseInutilizacao(response);
   }
 
-  // â”€â”€â”€ Cancelamento â”€â”€â”€
+  // ─── Cancelamento ───
 
   async cancelarNFe(params: {
     chNFe: string;
@@ -399,7 +399,7 @@ export class NFeClient {
     return this.enviarEvento(eventoXml, modelo);
   }
 
-  // â”€â”€â”€ Carta de CorreÃ§Ã£o â”€â”€â”€
+  // ─── Carta de Correção ───
 
   async cartaCorrecao(params: {
     chNFe: string;
@@ -429,7 +429,7 @@ export class NFeClient {
     return this.enviarEvento(eventoXml, modelo);
   }
 
-  // â”€â”€â”€ Consulta Cadastro â”€â”€â”€
+  // ─── Consulta Cadastro ───
 
   async consultarCadastro(params: {
     UF: string;
@@ -449,12 +449,12 @@ export class NFeClient {
     return parseConsultaCadastro(response);
   }
 
-  // â”€â”€â”€ DistribuiÃ§Ã£o DFe â”€â”€â”€
+  // ─── Distribuição DFe ───
 
   async distribuicaoDFe(params: {
-    /** Ãšltimo NSU recebido (para paginaÃ§Ã£o) */
+    /** Último NSU recebido (para paginação) */
     ultNSU?: string;
-    /** NSU especÃ­fico */
+    /** NSU específico */
     NSU?: string;
     /** Chave de acesso */
     chNFe?: string;
@@ -475,7 +475,7 @@ export class NFeClient {
     return parseDistribuicaoDFe(response);
   }
 
-  // â”€â”€â”€ ManifestaÃ§Ã£o do DestinatÃ¡rio â”€â”€â”€
+  // ─── Manifestação do Destinatário ───
 
   async manifestarDestinatario(params: {
     chNFe: string;
@@ -496,7 +496,7 @@ export class NFeClient {
     return this.enviarEvento(eventoXml);
   }
 
-  // â”€â”€â”€ Helpers internos â”€â”€â”€
+  // ─── Helpers internos ───
 
   private async enviarEvento(
     eventoXml: string,
@@ -509,7 +509,7 @@ export class NFeClient {
     });
 
     const idLote = Date.now().toString().slice(-15);
-    // buildEnvEventoXml jÃ¡ insere os eventos assinados dentro do envelope
+    // buildEnvEventoXml já insere os eventos assinados dentro do envelope
     const finalXml = buildEnvEventoXml([signedEvento], idLote);
 
     const serv = servicoParaModelo('RecepcaoEvento', modelo);
@@ -523,20 +523,20 @@ export class NFeClient {
   }
 
   /**
-   * Ativa contingÃªncia manualmente
+   * Ativa contingência manualmente
    */
   ativarContingencia(): void {
     this._contingenciaAtiva = true;
-    this.logger.warn('ContingÃªncia ativada manualmente');
+    this.logger.warn('Contingência ativada manualmente');
   }
 
   /**
-   * Desativa contingÃªncia manualmente
+   * Desativa contingência manualmente
    */
   desativarContingencia(): void {
     this._contingenciaAtiva = false;
     this.circuitBreaker.reset();
-    this.logger.info('ContingÃªncia desativada');
+    this.logger.info('Contingência desativada');
   }
 
   private async sendToSefaz(
@@ -545,7 +545,7 @@ export class NFeClient {
     serviceName: NFeServiceName
   ): Promise<string> {
     const service = NFE_SERVICES[serviceName];
-    if (!service) throw new Error(`ServiÃ§o desconhecido: ${serviceName}`);
+    if (!service) throw new Error(`Serviço desconhecido: ${serviceName}`);
 
     // Log XML request sanitizado
     if (this.config.logXml) {
@@ -581,9 +581,9 @@ export class NFeClient {
       }
       return await sendFn();
     } catch (error) {
-      // Fallback automÃ¡tico para contingÃªncia se SEFAZ principal falhar
+      // Fallback automático para contingência se SEFAZ principal falhar
       if (!this.contingenciaAtiva && this.shouldFallbackToContingency(error)) {
-        this.logger.warn(`Falha no autorizador principal, tentando contingÃªncia SVC...`);
+        this.logger.warn(`Falha no autorizador principal, tentando contingência SVC...`);
         this._contingenciaAtiva = true;
 
         const contingencyUrl = obterUrlSefaz(
@@ -607,10 +607,10 @@ export class NFeClient {
   }
 
   private shouldFallbackToContingency(error: unknown): boolean {
-    // Ativar contingÃªncia para erros de rede/timeout ou SEFAZ indisponÃ­vel
+    // Ativar contingência para erros de rede/timeout ou SEFAZ indisponível
     if (error instanceof SoapError) return true;
     if (error instanceof SefazError) {
-      return ['108', '109'].includes(error.cStat); // ServiÃ§o paralisado
+      return ['108', '109'].includes(error.cStat); // Serviço paralisado
     }
     if (error instanceof Error && error.message.includes('Circuit breaker')) return true;
     return false;

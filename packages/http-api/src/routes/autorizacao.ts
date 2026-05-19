@@ -5,7 +5,7 @@ import { buildNFeClient, type NFeClientPayload } from '../factories/nfe-client-f
 export const autorizacaoRouter: ExpressRouter = Router();
 
 /**
- * POST /autorizacao/enviar â€” Emissao de NF-e modelo 55 (autorizacao SEFAZ).
+ * POST /autorizacao/enviar — Emissao de NF-e modelo 55 (autorizacao SEFAZ).
  *
  * Wrapper HTTP sobre `NFeClient.autorizarNFe()`. O cliente do work-manager
  * (`nfe-api-client.ts`) chama esta rota passando o certificado (PFX base64
@@ -21,7 +21,7 @@ export const autorizacaoRouter: ExpressRouter = Router();
  * Validacoes de input minimas (estrutura completa eh validada pelo
  * validarNFe interno do @acbr-node/nfe, via Zod + regras de negocio):
  *   - certificado (pfxBase64 + senha) obrigatorio
- *   - cnpj/uf/ambiente obrigatorios (mesma validaÃ§Ã£o de buildNFeClient)
+ *   - cnpj/uf/ambiente obrigatorios (mesma validação de buildNFeClient)
  *   - nfe.ide + nfe.emit + nfe.det[] minimo nao-vazio
  */
 interface AutorizarPayload extends NFeClientPayload {

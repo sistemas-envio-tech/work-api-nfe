@@ -1,7 +1,7 @@
 /**
- * Gera a chave de acesso de 44 dÃ­gitos da NFe
+ * Gera a chave de acesso de 44 dígitos da NFe
  *
- * ComposiÃ§Ã£o: cUF(2) + AAMM(4) + CNPJ(14) + mod(2) + serie(3) + nNF(9) + tpEmis(1) + cNF(8) + cDV(1)
+ * Composição: cUF(2) + AAMM(4) + CNPJ(14) + mod(2) + serie(3) + nNF(9) + tpEmis(1) + cNF(8) + cDV(1)
  */
 export function gerarChaveAcesso(params: {
   cUF: number;
@@ -34,8 +34,8 @@ export function gerarChaveAcesso(params: {
 }
 
 /**
- * Calcula dÃ­gito verificador mÃ³dulo 11
- * Pesos de 2 a 9 da direita para esquerda, cÃ­clico
+ * Calcula dígito verificador módulo 11
+ * Pesos de 2 a 9 da direita para esquerda, cíclico
  */
 export function calcularMod11(value: string): number {
   const digits = value.split('').map(Number).reverse();
@@ -53,7 +53,7 @@ export function calcularMod11(value: string): number {
 }
 
 /**
- * Valida chave de acesso NFe (44 dÃ­gitos + dÃ­gito verificador)
+ * Valida chave de acesso NFe (44 dígitos + dígito verificador)
  */
 export function validarChaveAcesso(key: string): boolean {
   if (!/^\d{44}$/.test(key)) return false;
@@ -64,7 +64,7 @@ export function validarChaveAcesso(key: string): boolean {
 }
 
 /**
- * Gera cÃ³digo numÃ©rico aleatÃ³rio de 8 dÃ­gitos para compor a chave de acesso
+ * Gera código numérico aleatório de 8 dígitos para compor a chave de acesso
  */
 export function gerarCodigoAleatorio(): number {
   return Math.floor(10000000 + Math.random() * 89999999);

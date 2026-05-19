@@ -22,10 +22,10 @@ describe('IBGE Codes', () => {
   });
 
   it('should throw for invalid UF', () => {
-    expect(() => obterCodigoUF('XX')).toThrow('UF invÃ¡lida');
+    expect(() => obterCodigoUF('XX')).toThrow('UF inválida');
   });
 
   it('should throw for invalid code', () => {
-    expect(() => obterUFPorCodigo(99)).toThrow('CÃ³digo IBGE invÃ¡lido');
+    expect(() => obterUFPorCodigo(99)).toThrow('Código IBGE inválido');
   });
 });

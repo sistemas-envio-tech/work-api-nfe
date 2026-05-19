@@ -12,7 +12,7 @@ const DEFAULT_OPTIONS: RetryOptions = {
 };
 
 /**
- * Executa uma funÃ§Ã£o com retry e exponential backoff
+ * Executa uma função com retry e exponential backoff
  */
 export async function executarComRetry<T>(
   fn: () => Promise<T>,

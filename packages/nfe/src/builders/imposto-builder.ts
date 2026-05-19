@@ -62,7 +62,7 @@ function buildICMSFields(icms: ICMSType): XmlObject {
   if ('pFCP' in icms && icms.pFCP !== undefined) obj.pFCP = formatarDecimal(icms.pFCP, 4);
   if ('vFCP' in icms && icms.vFCP !== undefined) obj.vFCP = formatarDecimal(icms.vFCP, 2);
 
-  // DesoneraÃ§Ã£o
+  // Desoneração
   if ('vICMSDeson' in icms && icms.vICMSDeson !== undefined) obj.vICMSDeson = formatarDecimal(icms.vICMSDeson, 2);
   if ('motDesICMS' in icms && icms.motDesICMS !== undefined) obj.motDesICMS = String(icms.motDesICMS);
 

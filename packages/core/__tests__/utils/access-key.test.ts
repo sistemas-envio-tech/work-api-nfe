@@ -17,7 +17,7 @@ describe('Access Key Generation', () => {
   it('should generate 44-digit access key', () => {
     const key = gerarChaveAcesso({
       cUF: 35,           // SP
-      dataEmissao: new Date(2023, 2, 15), // MarÃ§o 2023
+      dataEmissao: new Date(2023, 2, 15), // Março 2023
       cnpj: '08043291000155',
       mod: 55,
       serie: 1,
@@ -29,7 +29,7 @@ describe('Access Key Generation', () => {
     expect(key).toHaveLength(44);
     expect(key).toMatch(/^\d{44}$/);
 
-    // Verificar composiÃ§Ã£o
+    // Verificar composição
     expect(key.substring(0, 2)).toBe('35');       // cUF (SP)
     expect(key.substring(2, 6)).toBe('2303');     // AAMM
     expect(key.substring(6, 20)).toBe('08043291000155'); // CNPJ
@@ -74,7 +74,7 @@ describe('Access Key Validation', () => {
       cNF: 32904104,
     });
 
-    // Alterar Ãºltimo dÃ­gito
+    // Alterar último dígito
     const wrongKey = key.slice(0, 43) + ((parseInt(key[43]) + 1) % 10).toString();
     expect(validarChaveAcesso(wrongKey)).toBe(false);
   });

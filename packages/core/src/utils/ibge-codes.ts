@@ -1,5 +1,5 @@
 /**
- * CÃ³digos IBGE das UFs brasileiras
+ * Códigos IBGE das UFs brasileiras
  */
 export const IBGE_UF: Record<string, number> = {
   RO: 11, AC: 12, AM: 13, RR: 14, PA: 15, AP: 16, TO: 17,
@@ -13,19 +13,19 @@ const CODE_TO_UF = Object.fromEntries(
 );
 
 /**
- * Retorna o cÃ³digo IBGE da UF
+ * Retorna o código IBGE da UF
  */
 export function obterCodigoUF(uf: string): number {
   const code = IBGE_UF[uf.toUpperCase()];
-  if (!code) throw new Error(`UF invÃ¡lida: ${uf}`);
+  if (!code) throw new Error(`UF inválida: ${uf}`);
   return code;
 }
 
 /**
- * Retorna a sigla da UF pelo cÃ³digo IBGE
+ * Retorna a sigla da UF pelo código IBGE
  */
 export function obterUFPorCodigo(code: number): string {
   const uf = CODE_TO_UF[code];
-  if (!uf) throw new Error(`CÃ³digo IBGE invÃ¡lido: ${code}`);
+  if (!uf) throw new Error(`Código IBGE inválido: ${code}`);
   return uf;
 }

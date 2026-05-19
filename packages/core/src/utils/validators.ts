@@ -1,5 +1,5 @@
 /**
- * Valida CNPJ (14 dÃ­gitos)
+ * Valida CNPJ (14 dígitos)
  */
 export function cnpjValido(cnpj: string): boolean {
   const cleaned = cnpj.replace(/\D/g, '');
@@ -25,7 +25,7 @@ export function cnpjValido(cnpj: string): boolean {
 }
 
 /**
- * Valida CPF (11 dÃ­gitos)
+ * Valida CPF (11 dígitos)
  */
 export function cpfValido(cpf: string): boolean {
   const cleaned = cpf.replace(/\D/g, '');
@@ -48,8 +48,8 @@ export function cpfValido(cpf: string): boolean {
 }
 
 /**
- * Valida InscriÃ§Ã£o Estadual genÃ©rica (verifica se contÃ©m apenas dÃ­gitos e tem tamanho razoÃ¡vel)
- * ValidaÃ§Ã£o completa depende do estado - implementar por UF se necessÃ¡rio
+ * Valida Inscrição Estadual genérica (verifica se contém apenas dígitos e tem tamanho razoável)
+ * Validação completa depende do estado - implementar por UF se necessário
  */
 export function ieValida(ie: string, _uf?: string): boolean {
   const cleaned = ie.replace(/\D/g, '');
@@ -59,7 +59,7 @@ export function ieValida(ie: string, _uf?: string): boolean {
 }
 
 /**
- * Formata CNPJ: 12345678000199 â†’ 12.345.678/0001-99
+ * Formata CNPJ: 12345678000199 → 12.345.678/0001-99
  */
 export function formatarCNPJ(cnpj: string): string {
   const cleaned = cnpj.replace(/\D/g, '');
@@ -70,7 +70,7 @@ export function formatarCNPJ(cnpj: string): string {
 }
 
 /**
- * Formata CPF: 12345678901 â†’ 123.456.789-01
+ * Formata CPF: 12345678901 → 123.456.789-01
  */
 export function formatarCPF(cpf: string): string {
   const cleaned = cpf.replace(/\D/g, '');

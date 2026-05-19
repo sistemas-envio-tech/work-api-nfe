@@ -3,7 +3,7 @@ import { XmlParser, comoNoXml, comoArrayXml, type XmlNode, type XmlValue } from 
 const parser = new XmlParser();
 
 /**
- * Dados extraÃ­dos do XML da NFe/nfeProc para renderizar o DANFE
+ * Dados extraídos do XML da NFe/nfeProc para renderizar o DANFE
  */
 export interface DanfeData {
   chaveAcesso: string;

@@ -10,7 +10,7 @@ export interface ContingencyConfig {
 }
 
 /**
- * Tipo de emissÃ£o baseado no modo
+ * Tipo de emissão baseado no modo
  */
 export const TIPO_EMISSAO = {
   NORMAL: 1,
@@ -24,7 +24,7 @@ export const TIPO_EMISSAO = {
 } as const;
 
 /**
- * Determina o tipo de emissÃ£o para contingÃªncia SVC
+ * Determina o tipo de emissão para contingência SVC
  */
 export function obterTipoEmissaoContingencia(uf: string): number {
   const autorizador = obterAutorizador(uf, true);
@@ -32,7 +32,7 @@ export function obterTipoEmissaoContingencia(uf: string): number {
 }
 
 /**
- * Resolve URL de contingÃªncia para uma UF/serviÃ§o
+ * Resolve URL de contingência para uma UF/serviço
  */
 export function obterUrlContingencia(
   uf: string,

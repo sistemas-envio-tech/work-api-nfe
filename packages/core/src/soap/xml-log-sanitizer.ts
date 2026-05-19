@@ -1,10 +1,10 @@
 /**
- * Sanitiza XML para log â€” mascara dados sensÃ­veis
+ * Sanitiza XML para log — mascara dados sensíveis
  */
 export function sanearXmlParaLog(xml: string): string {
   let sanitized = xml;
 
-  // Mascarar conteÃºdo de tags sensÃ­veis
+  // Mascarar conteúdo de tags sensíveis
   const sensitiveTags = [
     'CNPJ', 'CPF', 'IE', 'email', 'fone', 'xNome',
     'xLgr', 'nro', 'CEP',

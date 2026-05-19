@@ -54,7 +54,7 @@ export class XmlParser {
   }
 
   /**
-   * Extrai o conteÃºdo do body de um envelope SOAP
+   * Extrai o conteúdo do body de um envelope SOAP
    */
   parseSoapResponse(soapXml: string): Record<string, unknown> {
     const parsed = this.parse<Record<string, unknown>>(soapXml);
@@ -74,7 +74,7 @@ export class XmlParser {
   }
 
   /**
-   * Extrai valor de um campo em qualquer nÃ­vel do objeto
+   * Extrai valor de um campo em qualquer nível do objeto
    */
   extractValue(obj: Record<string, unknown>, path: string): unknown {
     const parts = path.split('.');

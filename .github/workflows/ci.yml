@@ -41,5 +41,11 @@ jobs:
       - name: Gate "as any" (.as-any-baseline)
         run: pnpm check:asany
 
+      - name: Check estrutura das rotas (lint:routes)
+        run: pnpm check:routes
+
+      - name: Check authMiddleware ordering (lint:rota-acl)
+        run: pnpm check:auth
+
       - name: Test (vitest workspace)
         run: pnpm test

@@ -16,7 +16,9 @@
     "baseline:asany": "node scripts/check-as-any.mjs --update",
     "check:tsc": "node scripts/check-tsc-baseline.mjs",
     "baseline:tsc": "node scripts/check-tsc-baseline.mjs --update",
-    "validate": "pnpm typecheck && pnpm lint && pnpm check:asany && pnpm check:tsc && pnpm test && pnpm build",
+    "check:routes": "node scripts/check-routes.mjs",
+    "check:auth": "node scripts/check-auth.mjs",
+    "validate": "pnpm typecheck && pnpm lint && pnpm check:asany && pnpm check:tsc && pnpm check:routes && pnpm check:auth && pnpm test && pnpm build",
     "prepare": "husky",
     "clean": "turbo clean && rm -rf node_modules"
   },

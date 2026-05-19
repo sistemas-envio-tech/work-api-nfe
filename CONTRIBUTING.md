@@ -81,7 +81,7 @@ atualizar o baseline.
   `obter*`, `criar*`, `gerar*`, `formatar*`). Excecoes intencionais: classes
   brand-like (`NFeClient`, `XmlParser`, erros `*Error`), prefixos `build*`/`parse*`
   dos builders/parsers XML (idioma universal no dominio) e acronimos SEFAZ
-  (NFe, CNPJ, IE, CFOP, etc.). NFCe (modelo 65) ainda nao implementada.
+  (NFe, CNPJ, IE, CFOP, etc.).
 - Logger: use `appLogger` (em http-api) ou `LoggerInterface` injetado. Nao usar
   `console.*` diretamente em codigo de runtime.
 - Testes: Vitest em `__tests__/` no nivel do package.
@@ -118,6 +118,26 @@ Para emitir NFCe a empresa precisa do CSC fornecido pela SEFAZ-UF. Passe
 
 As URLs SEFAZ NFCe podem mudar — usar `definirOverrideUrlSefaz()` em runtime
 para emergencias sem release.
+
+## CI e branch protection
+
+O workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda em push
+para `release` + dispatch manual. Em ordem: build → check:tsc → lint →
+check:asany → check:routes → check:auth → test.
+
+Pra que o CI **bloqueie merge** quando algum check falhar, o repo precisa de
+branch protection (configuravel apenas na UI do GitHub):
+
+1. Settings → Branches → Branch protection rules → Add rule
+2. Branch name pattern: `release`
+3. Marcar:
+   - Require a pull request before merging (1+ approvals)
+   - Require status checks to pass before merging — adicionar job `quality` do
+     workflow CI
+   - Require branches to be up to date before merging
+   - Do not allow bypassing the above settings (admin inclusive)
+
+Sem essa configuracao o CI roda, mas merges com CI vermelho passam silenciosos.
 
 ## Reportar problemas
 

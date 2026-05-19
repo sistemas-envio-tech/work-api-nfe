@@ -1,7 +1,9 @@
 # acbr-node
 
+[![CI](https://github.com/sistemas-envio-tech/work-api-nfe/actions/workflows/ci.yml/badge.svg?branch=release)](https://github.com/sistemas-envio-tech/work-api-nfe/actions/workflows/ci.yml)
+
 Port do ACBr (Component Brazil) para Node.js — biblioteca + microservice HTTP para
-emissao de documentos fiscais brasileiros (NF-e, em breve NFC-e).
+emissao de documentos fiscais brasileiros (NF-e e NFC-e).
 
 ## Estrutura (pnpm + turbo)
 

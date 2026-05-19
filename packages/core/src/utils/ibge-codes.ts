@@ -15,7 +15,7 @@ const CODE_TO_UF = Object.fromEntries(
 /**
  * Retorna o código IBGE da UF
  */
-export function getUFCode(uf: string): number {
+export function obterCodigoUF(uf: string): number {
   const code = IBGE_UF[uf.toUpperCase()];
   if (!code) throw new Error(`UF inválida: ${uf}`);
   return code;
@@ -24,7 +24,7 @@ export function getUFCode(uf: string): number {
 /**
  * Retorna a sigla da UF pelo código IBGE
  */
-export function getUFByCode(code: number): string {
+export function obterUFPorCodigo(code: number): string {
   const uf = CODE_TO_UF[code];
   if (!uf) throw new Error(`Código IBGE inválido: ${code}`);
   return uf;

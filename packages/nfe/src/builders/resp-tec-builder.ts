@@ -23,7 +23,7 @@ export function buildInfRespTec(
   // Calcular hashCSRT se token e chave disponíveis
   if (respTec.idCSRT && csrtToken && chaveAcesso) {
     obj.idCSRT = String(respTec.idCSRT).padStart(2, '0');
-    obj.hashCSRT = calculateCSRTHash(csrtToken, chaveAcesso);
+    obj.hashCSRT = calcularHashCSRT(csrtToken, chaveAcesso);
   } else if (respTec.idCSRT && respTec.hashCSRT) {
     // Hash já calculado externamente
     obj.idCSRT = String(respTec.idCSRT).padStart(2, '0');
@@ -39,7 +39,7 @@ export function buildInfRespTec(
  * O CSRT (Código de Segurança do Responsável Técnico) é um token
  * fornecido pela SEFAZ ao responsável técnico do software.
  */
-export function calculateCSRTHash(csrtToken: string, chaveAcesso: string): string {
+export function calcularHashCSRT(csrtToken: string, chaveAcesso: string): string {
   const data = csrtToken + chaveAcesso;
   return createHash('sha256').update(data).digest('base64');
 }

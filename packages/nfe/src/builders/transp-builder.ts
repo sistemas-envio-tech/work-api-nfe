@@ -1,6 +1,6 @@
 import type { XmlObject } from '@acbr-node/core';
 import type { Transporte } from '../types/nfe.js';
-import { formatDecimal } from './det-builder.js';
+import { formatarDecimal } from './det-builder.js';
 
 /**
  * Monta o grupo <transp> da NFe
@@ -30,8 +30,8 @@ export function buildTransp(transp: Transporte): XmlObject {
       if (v.esp) vol.esp = v.esp;
       if (v.marca) vol.marca = v.marca;
       if (v.nVol) vol.nVol = v.nVol;
-      if (v.pesoL !== undefined) vol.pesoL = formatDecimal(v.pesoL, 3);
-      if (v.pesoB !== undefined) vol.pesoB = formatDecimal(v.pesoB, 3);
+      if (v.pesoL !== undefined) vol.pesoL = formatarDecimal(v.pesoL, 3);
+      if (v.pesoB !== undefined) vol.pesoB = formatarDecimal(v.pesoB, 3);
       return vol;
     });
   }

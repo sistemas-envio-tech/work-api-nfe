@@ -295,5 +295,233 @@
       "NFeDistribuicaoDFe": "https://hom1.nfe.fazenda.gov.br/NFeDistribuicaoDFe/NFeDistribuicaoDFe.asmx",
       "RecepcaoEvento4": "https://hom1.nfe.fazenda.gov.br/NFeRecepcaoEvento4/NFeRecepcaoEvento4.asmx"
     }
+  },
+
+  "SVRS-NFCe": {
+    "producao": {
+      "NFCeAutorizacao4": "https://nfce.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+      "NFCeRetAutorizacao4": "https://nfce.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+      "NFCeConsultaProtocolo4": "https://nfce.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+      "NFCeStatusServico4": "https://nfce.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+      "NFCeInutilizacao4": "https://nfce.svrs.rs.gov.br/ws/NfeInutilizacao/NfeInutilizacao4.asmx",
+      "NFCeRecepcaoEvento4": "https://nfce.svrs.rs.gov.br/ws/recepcaoevento/recepcaoevento4.asmx"
+    },
+    "homologacao": {
+      "NFCeAutorizacao4": "https://nfce-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+      "NFCeRetAutorizacao4": "https://nfce-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+      "NFCeConsultaProtocolo4": "https://nfce-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+      "NFCeStatusServico4": "https://nfce-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+      "NFCeInutilizacao4": "https://nfce-homologacao.svrs.rs.gov.br/ws/NfeInutilizacao/NfeInutilizacao4.asmx",
+      "NFCeRecepcaoEvento4": "https://nfce-homologacao.svrs.rs.gov.br/ws/recepcaoevento/recepcaoevento4.asmx"
+    }
+  },
+
+  "SP-NFCe": {
+    "producao": {
+      "NFCeAutorizacao4": "https://nfce.fazenda.sp.gov.br/ws/NFeAutorizacao4.asmx",
+      "NFCeRetAutorizacao4": "https://nfce.fazenda.sp.gov.br/ws/NFeRetAutorizacao4.asmx",
+      "NFCeConsultaProtocolo4": "https://nfce.fazenda.sp.gov.br/ws/NFeConsultaProtocolo4.asmx",
+      "NFCeStatusServico4": "https://nfce.fazenda.sp.gov.br/ws/NFeStatusServico4.asmx",
+      "NFCeInutilizacao4": "https://nfce.fazenda.sp.gov.br/ws/NFeInutilizacao4.asmx",
+      "NFCeRecepcaoEvento4": "https://nfce.fazenda.sp.gov.br/ws/NFeRecepcaoEvento4.asmx"
+    },
+    "homologacao": {
+      "NFCeAutorizacao4": "https://homologacao.nfce.fazenda.sp.gov.br/ws/NFeAutorizacao4.asmx",
+      "NFCeRetAutorizacao4": "https://homologacao.nfce.fazenda.sp.gov.br/ws/NFeRetAutorizacao4.asmx",
+      "NFCeConsultaProtocolo4": "https://homologacao.nfce.fazenda.sp.gov.br/ws/NFeConsultaProtocolo4.asmx",
+      "NFCeStatusServico4": "https://homologacao.nfce.fazenda.sp.gov.br/ws/NFeStatusServico4.asmx",
+      "NFCeInutilizacao4": "https://homologacao.nfce.fazenda.sp.gov.br/ws/NFeInutilizacao4.asmx",
+      "NFCeRecepcaoEvento4": "https://homologacao.nfce.fazenda.sp.gov.br/ws/NFeRecepcaoEvento4.asmx"
+    }
+  },
+
+  "RS-NFCe": {
+    "producao": {
+      "NFCeAutorizacao4": "https://nfce.sefazrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+      "NFCeRetAutorizacao4": "https://nfce.sefazrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+      "NFCeConsultaProtocolo4": "https://nfce.sefazrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+      "NFCeStatusServico4": "https://nfce.sefazrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+      "NFCeInutilizacao4": "https://nfce.sefazrs.rs.gov.br/ws/NfeInutilizacao/NfeInutilizacao4.asmx",
+      "NFCeRecepcaoEvento4": "https://nfce.sefazrs.rs.gov.br/ws/recepcaoevento/recepcaoevento4.asmx"
+    },
+    "homologacao": {
+      "NFCeAutorizacao4": "https://nfce-homologacao.sefazrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+      "NFCeRetAutorizacao4": "https://nfce-homologacao.sefazrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+      "NFCeConsultaProtocolo4": "https://nfce-homologacao.sefazrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+      "NFCeStatusServico4": "https://nfce-homologacao.sefazrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+      "NFCeInutilizacao4": "https://nfce-homologacao.sefazrs.rs.gov.br/ws/NfeInutilizacao/NfeInutilizacao4.asmx",
+      "NFCeRecepcaoEvento4": "https://nfce-homologacao.sefazrs.rs.gov.br/ws/recepcaoevento/recepcaoevento4.asmx"
+    }
+  },
+
+  "AM-NFCe": {
+    "producao": {
+      "NFCeAutorizacao4": "https://nfce.sefaz.am.gov.br/nfce-services/services/NfeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://nfce.sefaz.am.gov.br/nfce-services/services/NfeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://nfce.sefaz.am.gov.br/nfce-services/services/NfeConsulta4",
+      "NFCeStatusServico4": "https://nfce.sefaz.am.gov.br/nfce-services/services/NfeStatusServico4",
+      "NFCeInutilizacao4": "https://nfce.sefaz.am.gov.br/nfce-services/services/NfeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://nfce.sefaz.am.gov.br/nfce-services/services/RecepcaoEvento4"
+    },
+    "homologacao": {
+      "NFCeAutorizacao4": "https://homnfce.sefaz.am.gov.br/nfce-services/services/NfeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://homnfce.sefaz.am.gov.br/nfce-services/services/NfeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://homnfce.sefaz.am.gov.br/nfce-services/services/NfeConsulta4",
+      "NFCeStatusServico4": "https://homnfce.sefaz.am.gov.br/nfce-services/services/NfeStatusServico4",
+      "NFCeInutilizacao4": "https://homnfce.sefaz.am.gov.br/nfce-services/services/NfeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://homnfce.sefaz.am.gov.br/nfce-services/services/RecepcaoEvento4"
+    }
+  },
+
+  "BA-NFCe": {
+    "producao": {
+      "NFCeAutorizacao4": "https://nfce.sefaz.ba.gov.br/webservices/NFeAutorizacao4/NFeAutorizacao4.asmx",
+      "NFCeRetAutorizacao4": "https://nfce.sefaz.ba.gov.br/webservices/NFeRetAutorizacao4/NFeRetAutorizacao4.asmx",
+      "NFCeConsultaProtocolo4": "https://nfce.sefaz.ba.gov.br/webservices/NFeConsultaProtocolo4/NFeConsultaProtocolo4.asmx",
+      "NFCeStatusServico4": "https://nfce.sefaz.ba.gov.br/webservices/NFeStatusServico4/NFeStatusServico4.asmx",
+      "NFCeInutilizacao4": "https://nfce.sefaz.ba.gov.br/webservices/NFeInutilizacao4/NFeInutilizacao4.asmx",
+      "NFCeRecepcaoEvento4": "https://nfce.sefaz.ba.gov.br/webservices/NFeRecepcaoEvento4/NFeRecepcaoEvento4.asmx"
+    },
+    "homologacao": {
+      "NFCeAutorizacao4": "https://hnfce.sefaz.ba.gov.br/webservices/NFeAutorizacao4/NFeAutorizacao4.asmx",
+      "NFCeRetAutorizacao4": "https://hnfce.sefaz.ba.gov.br/webservices/NFeRetAutorizacao4/NFeRetAutorizacao4.asmx",
+      "NFCeConsultaProtocolo4": "https://hnfce.sefaz.ba.gov.br/webservices/NFeConsultaProtocolo4/NFeConsultaProtocolo4.asmx",
+      "NFCeStatusServico4": "https://hnfce.sefaz.ba.gov.br/webservices/NFeStatusServico4/NFeStatusServico4.asmx",
+      "NFCeInutilizacao4": "https://hnfce.sefaz.ba.gov.br/webservices/NFeInutilizacao4/NFeInutilizacao4.asmx",
+      "NFCeRecepcaoEvento4": "https://hnfce.sefaz.ba.gov.br/webservices/NFeRecepcaoEvento4/NFeRecepcaoEvento4.asmx"
+    }
+  },
+
+  "CE-NFCe": {
+    "producao": {
+      "NFCeAutorizacao4": "https://nfce.sefaz.ce.gov.br/nfce4/services/NFeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://nfce.sefaz.ce.gov.br/nfce4/services/NFeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://nfce.sefaz.ce.gov.br/nfce4/services/NFeConsultaProtocolo4",
+      "NFCeStatusServico4": "https://nfce.sefaz.ce.gov.br/nfce4/services/NFeStatusServico4",
+      "NFCeInutilizacao4": "https://nfce.sefaz.ce.gov.br/nfce4/services/NFeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://nfce.sefaz.ce.gov.br/nfce4/services/NFeRecepcaoEvento4"
+    },
+    "homologacao": {
+      "NFCeAutorizacao4": "https://nfceh.sefaz.ce.gov.br/nfce4/services/NFeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://nfceh.sefaz.ce.gov.br/nfce4/services/NFeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://nfceh.sefaz.ce.gov.br/nfce4/services/NFeConsultaProtocolo4",
+      "NFCeStatusServico4": "https://nfceh.sefaz.ce.gov.br/nfce4/services/NFeStatusServico4",
+      "NFCeInutilizacao4": "https://nfceh.sefaz.ce.gov.br/nfce4/services/NFeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://nfceh.sefaz.ce.gov.br/nfce4/services/NFeRecepcaoEvento4"
+    }
+  },
+
+  "GO-NFCe": {
+    "producao": {
+      "NFCeAutorizacao4": "https://nfe.sefaz.go.gov.br/nfe/services/NFeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://nfe.sefaz.go.gov.br/nfe/services/NFeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://nfe.sefaz.go.gov.br/nfe/services/NFeConsultaProtocolo4",
+      "NFCeStatusServico4": "https://nfe.sefaz.go.gov.br/nfe/services/NFeStatusServico4",
+      "NFCeInutilizacao4": "https://nfe.sefaz.go.gov.br/nfe/services/NFeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://nfe.sefaz.go.gov.br/nfe/services/NFeRecepcaoEvento4"
+    },
+    "homologacao": {
+      "NFCeAutorizacao4": "https://homolog.sefaz.go.gov.br/nfe/services/NFeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://homolog.sefaz.go.gov.br/nfe/services/NFeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://homolog.sefaz.go.gov.br/nfe/services/NFeConsultaProtocolo4",
+      "NFCeStatusServico4": "https://homolog.sefaz.go.gov.br/nfe/services/NFeStatusServico4",
+      "NFCeInutilizacao4": "https://homolog.sefaz.go.gov.br/nfe/services/NFeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://homolog.sefaz.go.gov.br/nfe/services/NFeRecepcaoEvento4"
+    }
+  },
+
+  "MG-NFCe": {
+    "producao": {
+      "NFCeAutorizacao4": "https://nfce.fazenda.mg.gov.br/nfce/services/NFeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://nfce.fazenda.mg.gov.br/nfce/services/NFeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://nfce.fazenda.mg.gov.br/nfce/services/NFeConsultaProtocolo4",
+      "NFCeStatusServico4": "https://nfce.fazenda.mg.gov.br/nfce/services/NFeStatusServico4",
+      "NFCeInutilizacao4": "https://nfce.fazenda.mg.gov.br/nfce/services/NFeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://nfce.fazenda.mg.gov.br/nfce/services/NFeRecepcaoEvento4"
+    },
+    "homologacao": {
+      "NFCeAutorizacao4": "https://hnfce.fazenda.mg.gov.br/nfce/services/NFeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://hnfce.fazenda.mg.gov.br/nfce/services/NFeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://hnfce.fazenda.mg.gov.br/nfce/services/NFeConsultaProtocolo4",
+      "NFCeStatusServico4": "https://hnfce.fazenda.mg.gov.br/nfce/services/NFeStatusServico4",
+      "NFCeInutilizacao4": "https://hnfce.fazenda.mg.gov.br/nfce/services/NFeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://hnfce.fazenda.mg.gov.br/nfce/services/NFeRecepcaoEvento4"
+    }
+  },
+
+  "MS-NFCe": {
+    "producao": {
+      "NFCeAutorizacao4": "https://nfce.fazenda.ms.gov.br/producao/services2/services/NFeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://nfce.fazenda.ms.gov.br/producao/services2/services/NFeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://nfce.fazenda.ms.gov.br/producao/services2/services/NFeConsultaProtocolo4",
+      "NFCeStatusServico4": "https://nfce.fazenda.ms.gov.br/producao/services2/services/NFeStatusServico4",
+      "NFCeInutilizacao4": "https://nfce.fazenda.ms.gov.br/producao/services2/services/NFeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://nfce.fazenda.ms.gov.br/producao/services2/services/NFeRecepcaoEvento4"
+    },
+    "homologacao": {
+      "NFCeAutorizacao4": "https://homologacao.nfce.fazenda.ms.gov.br/homologacao/services2/services/NFeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://homologacao.nfce.fazenda.ms.gov.br/homologacao/services2/services/NFeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://homologacao.nfce.fazenda.ms.gov.br/homologacao/services2/services/NFeConsultaProtocolo4",
+      "NFCeStatusServico4": "https://homologacao.nfce.fazenda.ms.gov.br/homologacao/services2/services/NFeStatusServico4",
+      "NFCeInutilizacao4": "https://homologacao.nfce.fazenda.ms.gov.br/homologacao/services2/services/NFeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://homologacao.nfce.fazenda.ms.gov.br/homologacao/services2/services/NFeRecepcaoEvento4"
+    }
+  },
+
+  "MT-NFCe": {
+    "producao": {
+      "NFCeAutorizacao4": "https://nfce.sefaz.mt.gov.br/nfcews/v4/services/NfeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://nfce.sefaz.mt.gov.br/nfcews/v4/services/NfeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://nfce.sefaz.mt.gov.br/nfcews/v4/services/NfeConsulta4",
+      "NFCeStatusServico4": "https://nfce.sefaz.mt.gov.br/nfcews/v4/services/NfeStatusServico4",
+      "NFCeInutilizacao4": "https://nfce.sefaz.mt.gov.br/nfcews/v4/services/NfeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://nfce.sefaz.mt.gov.br/nfcews/v4/services/RecepcaoEvento4"
+    },
+    "homologacao": {
+      "NFCeAutorizacao4": "https://homologacao.sefaz.mt.gov.br/nfcews/v4/services/NfeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://homologacao.sefaz.mt.gov.br/nfcews/v4/services/NfeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://homologacao.sefaz.mt.gov.br/nfcews/v4/services/NfeConsulta4",
+      "NFCeStatusServico4": "https://homologacao.sefaz.mt.gov.br/nfcews/v4/services/NfeStatusServico4",
+      "NFCeInutilizacao4": "https://homologacao.sefaz.mt.gov.br/nfcews/v4/services/NfeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://homologacao.sefaz.mt.gov.br/nfcews/v4/services/RecepcaoEvento4"
+    }
+  },
+
+  "PE-NFCe": {
+    "producao": {
+      "NFCeAutorizacao4": "https://nfce.sefaz.pe.gov.br/nfce-service/services/NFeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://nfce.sefaz.pe.gov.br/nfce-service/services/NFeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://nfce.sefaz.pe.gov.br/nfce-service/services/NFeConsultaProtocolo4",
+      "NFCeStatusServico4": "https://nfce.sefaz.pe.gov.br/nfce-service/services/NFeStatusServico4",
+      "NFCeInutilizacao4": "https://nfce.sefaz.pe.gov.br/nfce-service/services/NFeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://nfce.sefaz.pe.gov.br/nfce-service/services/NFeRecepcaoEvento4"
+    },
+    "homologacao": {
+      "NFCeAutorizacao4": "https://nfcehomolog.sefaz.pe.gov.br/nfce-service/services/NFeAutorizacao4",
+      "NFCeRetAutorizacao4": "https://nfcehomolog.sefaz.pe.gov.br/nfce-service/services/NFeRetAutorizacao4",
+      "NFCeConsultaProtocolo4": "https://nfcehomolog.sefaz.pe.gov.br/nfce-service/services/NFeConsultaProtocolo4",
+      "NFCeStatusServico4": "https://nfcehomolog.sefaz.pe.gov.br/nfce-service/services/NFeStatusServico4",
+      "NFCeInutilizacao4": "https://nfcehomolog.sefaz.pe.gov.br/nfce-service/services/NFeInutilizacao4",
+      "NFCeRecepcaoEvento4": "https://nfcehomolog.sefaz.pe.gov.br/nfce-service/services/NFeRecepcaoEvento4"
+    }
+  },
+
+  "PR-NFCe": {
+    "producao": {
+      "NFCeAutorizacao4": "https://nfce.fazenda.pr.gov.br/nfce/NFeAutorizacao4?wsdl",
+      "NFCeRetAutorizacao4": "https://nfce.fazenda.pr.gov.br/nfce/NFeRetAutorizacao4?wsdl",
+      "NFCeConsultaProtocolo4": "https://nfce.fazenda.pr.gov.br/nfce/NFeConsultaProtocolo4?wsdl",
+      "NFCeStatusServico4": "https://nfce.fazenda.pr.gov.br/nfce/NFeStatusServico4?wsdl",
+      "NFCeInutilizacao4": "https://nfce.fazenda.pr.gov.br/nfce/NFeInutilizacao4?wsdl",
+      "NFCeRecepcaoEvento4": "https://nfce.fazenda.pr.gov.br/nfce/NFeRecepcaoEvento4?wsdl"
+    },
+    "homologacao": {
+      "NFCeAutorizacao4": "https://homologacao.nfce.fazenda.pr.gov.br/nfce/NFeAutorizacao4?wsdl",
+      "NFCeRetAutorizacao4": "https://homologacao.nfce.fazenda.pr.gov.br/nfce/NFeRetAutorizacao4?wsdl",
+      "NFCeConsultaProtocolo4": "https://homologacao.nfce.fazenda.pr.gov.br/nfce/NFeConsultaProtocolo4?wsdl",
+      "NFCeStatusServico4": "https://homologacao.nfce.fazenda.pr.gov.br/nfce/NFeStatusServico4?wsdl",
+      "NFCeInutilizacao4": "https://homologacao.nfce.fazenda.pr.gov.br/nfce/NFeInutilizacao4?wsdl",
+      "NFCeRecepcaoEvento4": "https://homologacao.nfce.fazenda.pr.gov.br/nfce/NFeRecepcaoEvento4?wsdl"
+    }
   }
 }

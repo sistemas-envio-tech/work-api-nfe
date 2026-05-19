@@ -26,11 +26,3 @@ export const env = {
   // APENAS em dev; em prod use NODE_EXTRA_CA_CERTS com o bundle ICP-Brasil.
   insecureTls: process.env.NFE_API_INSECURE_TLS === 'true',
 };
-
-if (env.insecureTls) {
-  console.warn('[http-api] NFE_API_INSECURE_TLS=true — verificacao da cadeia TLS desabilitada (INSEGURO em producao)');
-}
-
-if (!env.internalToken) {
-  console.warn('[http-api] INTERNAL_TOKEN nao definido — usando fallback (INSEGURO em producao)');
-}

@@ -1,4 +1,4 @@
-import { XmlBuilder, type XmlObject, generateAccessKey, generateRandomCode, getUFCode } from '@acbr-node/core';
+import { XmlBuilder, type XmlObject, gerarChaveAcesso, gerarCodigoAleatorio } from '@acbr-node/core';
 import type { NFe } from '../types/nfe.js';
 import { NFE_NAMESPACE, NFE_VERSAO } from '../types/nfe.js';
 import { buildIde } from './ide-builder.js';
@@ -19,10 +19,10 @@ import { buildInfRespTec } from './resp-tec-builder.js';
  */
 export function buildNFeXml(nfe: NFe): { xml: string; chaveAcesso: string } {
   // Gerar código numérico se não informado
-  const cNF = nfe.ide.cNF ?? generateRandomCode();
+  const cNF = nfe.ide.cNF ?? gerarCodigoAleatorio();
 
   // Gerar chave de acesso
-  const chaveAcesso = generateAccessKey({
+  const chaveAcesso = gerarChaveAcesso({
     cUF: nfe.ide.cUF,
     dataEmissao: new Date(nfe.ide.dhEmi),
     cnpj: (nfe.emit.CNPJ || nfe.emit.CPF)!,
@@ -157,4 +157,20 @@ export function buildConsReciNFeXml(tpAmb: number, nRec: string): string {
     tpAmb: String(tpAmb),
     nRec,
   }, NFE_NAMESPACE);
+}
+
+/**
+ * Monta o fragmento <infNFeSupl> que vai DEPOIS da Signature na NFCe.
+ *
+ * Conforme leiaute SEFAZ NFCe v4.00 (Anexo II do Manual da NFCe), o elemento
+ * <infNFeSupl> e irmao de <infNFe> e <Signature>, contendo:
+ *   - <qrCode>: URL completa que vai dentro do QR Code (CDATA pra preservar
+ *      caracteres especiais como | e &)
+ *   - <urlChave>: URL publica de consulta manual pela chave de acesso
+ *
+ * Retorna apenas o fragmento — quem chama insere antes de </NFe> na string
+ * do XML ja assinado.
+ */
+export function buildInfNFeSuplXml(qrCode: string, urlChave: string): string {
+  return `<infNFeSupl><qrCode><![CDATA[${qrCode}]]></qrCode><urlChave>${urlChave}</urlChave></infNFeSupl>`;
 }

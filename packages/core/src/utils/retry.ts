@@ -14,7 +14,7 @@ const DEFAULT_OPTIONS: RetryOptions = {
 /**
  * Executa uma função com retry e exponential backoff
  */
-export async function withRetry<T>(
+export async function executarComRetry<T>(
   fn: () => Promise<T>,
   options: Partial<RetryOptions> = {}
 ): Promise<T> {

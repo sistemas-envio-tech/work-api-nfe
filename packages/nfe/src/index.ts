@@ -34,4 +34,4 @@ export { parseConsultaCadastro, type RetornoConsultaCadastro, type InfCadConsult
 export { parseDistribuicaoDFe, type RetornoDistribuicaoDFe, type DocZipDFe } from './parsers/distribuicao-parser.js';
 
 // Validation
-export { validateNFe, validateBusinessRules } from './validation/nfe-validator.js';
+export { validarNFe, validarRegrasNegocio } from './validation/nfe-validator.js';

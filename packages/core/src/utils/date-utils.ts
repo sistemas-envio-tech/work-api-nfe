@@ -23,15 +23,15 @@ const UF_OFFSETS: Record<string, string> = {
 /**
  * Retorna o offset de fuso horário para a UF
  */
-export function getTimezoneOffset(uf: string): string {
+export function obterOffsetTimezone(uf: string): string {
   return UF_OFFSETS[uf.toUpperCase()] || '-03:00';
 }
 
 /**
  * Formata data no padrão NFe: yyyy-MM-ddTHH:mm:ssXXX
  */
-export function formatNFeDate(date: Date, uf: string = 'SP'): string {
-  const offset = getTimezoneOffset(uf);
+export function formatarDataNFe(date: Date, uf: string = 'SP'): string {
+  const offset = obterOffsetTimezone(uf);
   const offsetHours = parseInt(offset.slice(0, 3), 10);
   const offsetMinutes = parseInt(offset.slice(4, 6), 10) * (offsetHours < 0 ? -1 : 1);
 
@@ -50,6 +50,6 @@ export function formatNFeDate(date: Date, uf: string = 'SP'): string {
 /**
  * Retorna data/hora atual formatada para NFe
  */
-export function nowNFe(uf: string = 'SP'): string {
-  return formatNFeDate(new Date(), uf);
+export function agoraNFe(uf: string = 'SP'): string {
+  return formatarDataNFe(new Date(), uf);
 }

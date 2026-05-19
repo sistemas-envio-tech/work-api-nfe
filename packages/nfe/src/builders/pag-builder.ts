@@ -1,6 +1,6 @@
 import type { XmlObject } from '@acbr-node/core';
 import type { Pagamento } from '../types/nfe.js';
-import { formatDecimal } from './det-builder.js';
+import { formatarDecimal } from './det-builder.js';
 
 /**
  * Monta o grupo <pag> da NFe
@@ -14,7 +14,7 @@ export function buildPag(pag: Pagamento): XmlObject {
     if (dp.indPag !== undefined) detPag.indPag = String(dp.indPag);
     detPag.tPag = dp.tPag;
     if (dp.xPag) detPag.xPag = dp.xPag;
-    detPag.vPag = formatDecimal(dp.vPag, 2);
+    detPag.vPag = formatarDecimal(dp.vPag, 2);
 
     if (dp.card) {
       detPag.card = {
@@ -29,7 +29,7 @@ export function buildPag(pag: Pagamento): XmlObject {
   });
 
   if (pag.vTroco !== undefined) {
-    obj.vTroco = formatDecimal(pag.vTroco, 2);
+    obj.vTroco = formatarDecimal(pag.vTroco, 2);
   }
 
   return obj;

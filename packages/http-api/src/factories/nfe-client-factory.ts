@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer';
-import { NFeClient, type EmpresaConfig } from '@acbr-node/nfe';
-import { createLogger } from '@acbr-node/core';
+import { NFeClient, type EmpresaConfig, type Endereco } from '@acbr-node/nfe';
+import { criarLogger } from '@acbr-node/core';
 import { env } from '../config/env.js';
 
 export interface CertificadoPayload {
@@ -14,19 +14,46 @@ export interface NFeClientPayload {
   cnpj: string;
   certificado: CertificadoPayload;
   razaoSocial?: string;
+  nomeFantasia?: string;
   inscricaoEstadual?: string;
+  inscricaoMunicipal?: string;
+  /** 1=Simples Nacional, 2=Simples com excesso de sublimite, 3=Regime Normal. Default 3. */
+  crt?: 1 | 2 | 3;
+  /**
+   * Endereco completo da empresa emitente.
+   *
+   * Para eventos (cancelamento/CCe/inutilizacao) o SEFAZ usa apenas o CNPJ,
+   * entao este campo e opcional aqui. Para emissao real de NFe (modelo 55)
+   * o leiaute SEFAZ exige o enderEmit completo â€” neste caso o objeto NFe ja
+   * carrega seu proprio emit.enderEmit, mas o NFeClient tambem pode usar
+   * este endereco internamente (ex.: NFCe modelo 65 futuramente).
+   *
+   * Quando omitido, a factory usa placeholders ("-"/"00000000"). Isso e seguro
+   * para os eventos atuais mas seria rejeitado pelo SEFAZ em emissoes reais.
+   */
+  enderecoEmpresa?: Endereco;
+  /**
+   * Codigo de Seguranca do Contribuinte (CSC). Obrigatorio APENAS para
+   * emissao de NFCe (modelo 65) — necessario para gerar o hash do QR Code.
+   * Para NFe (modelo 55) pode ser omitido.
+   */
+  csc?: string;
+  /** ID do CSC (zero-padded a 6 digitos, ex.: "000001"). */
+  cscId?: string;
   logXml?: boolean;
 }
 
-const logger = createLogger(env.logLevel === 'debug');
+const logger = criarLogger(env.logLevel === 'debug');
 
 function buildEmpresa(payload: NFeClientPayload): EmpresaConfig {
   return {
     cnpj: payload.cnpj,
     razaoSocial: payload.razaoSocial ?? 'SEM RAZAO SOCIAL',
+    nomeFantasia: payload.nomeFantasia,
     inscricaoEstadual: payload.inscricaoEstadual ?? 'ISENTO',
-    crt: 3,
-    endereco: {
+    inscricaoMunicipal: payload.inscricaoMunicipal,
+    crt: payload.crt ?? 3,
+    endereco: payload.enderecoEmpresa ?? {
       xLgr: '-',
       nro: '-',
       xBairro: '-',
@@ -37,6 +64,8 @@ function buildEmpresa(payload: NFeClientPayload): EmpresaConfig {
       cPais: 1058,
       xPais: 'BRASIL',
     },
+    csc: payload.csc,
+    cscId: payload.cscId,
   };
 }
 

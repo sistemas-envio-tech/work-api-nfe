@@ -43,7 +43,7 @@ const STOP = 106;
  * Gera barcode Code128-C para a chave de acesso (44 dígitos)
  * Retorna array de barras: true = barra preta, false = espaço
  */
-export function generateCode128Bars(data: string): boolean[] {
+export function gerarBarrasCode128(data: string): boolean[] {
   // Pad to even length
   const padded = data.length % 2 !== 0 ? '0' + data : data;
 
@@ -85,5 +85,5 @@ export function generateCode128Bars(data: string): boolean[] {
  * Largura total do barcode em módulos (unidades)
  */
 export function getCode128Width(data: string): number {
-  return generateCode128Bars(data).length;
+  return gerarBarrasCode128(data).length;
 }

@@ -1,2 +1,2 @@
-export type { LoggerInterface } from './logger.js';
-export { createLogger, noopLogger } from './logger.js';
+export type { LoggerInterface, LoggerOptions, LogLevel } from './logger.js';
+export { criarLogger, loggerNoop } from './logger.js';

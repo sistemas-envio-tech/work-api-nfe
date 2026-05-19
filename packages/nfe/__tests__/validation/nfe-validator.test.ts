@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateNFe, validateBusinessRules } from '../../src/validation/nfe-validator.js';
+import { validarNFe, validarRegrasNegocio } from '../../src/validation/nfe-validator.js';
 import { ValidationError } from '@acbr-node/core';
 
 function createMinimalNFe() {
@@ -35,52 +35,61 @@ function createMinimalNFe() {
   };
 }
 
-describe('validateNFe', () => {
+describe('validarNFe', () => {
   it('should pass for valid NFe', () => {
-    expect(() => validateNFe(createMinimalNFe())).not.toThrow();
+    expect(() => validarNFe(createMinimalNFe())).not.toThrow();
   });
 
   it('should fail for missing emitente CNPJ and CPF', () => {
     const nfe = createMinimalNFe();
     (nfe.emit as any).CNPJ = undefined;
-    expect(() => validateNFe(nfe)).toThrow(ValidationError);
+    expect(() => validarNFe(nfe)).toThrow(ValidationError);
   });
 
   it('should fail for empty det array', () => {
     const nfe = createMinimalNFe();
     nfe.det = [];
-    expect(() => validateNFe(nfe)).toThrow(ValidationError);
+    expect(() => validarNFe(nfe)).toThrow(ValidationError);
   });
 
   it('should fail for invalid NCM', () => {
     const nfe = createMinimalNFe();
     nfe.det[0].prod.NCM = '123'; // should be 8 digits
-    expect(() => validateNFe(nfe)).toThrow(ValidationError);
+    expect(() => validarNFe(nfe)).toThrow(ValidationError);
   });
 
   it('should fail for invalid CFOP', () => {
     const nfe = createMinimalNFe();
     nfe.det[0].prod.CFOP = '51'; // should be 4 digits
-    expect(() => validateNFe(nfe)).toThrow(ValidationError);
+    expect(() => validarNFe(nfe)).toThrow(ValidationError);
   });
 
   it('should fail for invalid CEP', () => {
     const nfe = createMinimalNFe();
     nfe.emit.enderEmit.CEP = '123'; // should be 8 digits
-    expect(() => validateNFe(nfe)).toThrow(ValidationError);
+    expect(() => validarNFe(nfe)).toThrow(ValidationError);
   });
 
   it('should fail for missing pagamento', () => {
     const nfe = createMinimalNFe();
     nfe.pag.detPag = [];
-    expect(() => validateNFe(nfe)).toThrow(ValidationError);
+    expect(() => validarNFe(nfe)).toThrow(ValidationError);
+  });
+
+  it('should accept NFCe (mod=65) when structure is valid', () => {
+    const nfe = createMinimalNFe();
+    nfe.ide.mod = 65;
+    nfe.ide.idDest = 1;
+    nfe.ide.indFinal = 1;
+    nfe.ide.indPres = 1;
+    expect(() => validarNFe(nfe)).not.toThrow();
   });
 
   it('should include field path in error details', () => {
     const nfe = createMinimalNFe();
     nfe.det[0].prod.NCM = 'XX';
     try {
-      validateNFe(nfe);
+      validarNFe(nfe);
       expect.fail('Should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(ValidationError);
@@ -90,22 +99,68 @@ describe('validateNFe', () => {
   });
 });
 
-describe('validateBusinessRules', () => {
+describe('validarRegrasNegocio', () => {
   it('should pass for correct totals', () => {
     const nfe = createMinimalNFe();
-    expect(() => validateBusinessRules(nfe)).not.toThrow();
+    expect(() => validarRegrasNegocio(nfe)).not.toThrow();
   });
 
   it('should fail when vProd does not match sum of items', () => {
     const nfe = createMinimalNFe();
     nfe.total.ICMSTot.vProd = 999; // should be 100
-    expect(() => validateBusinessRules(nfe)).toThrow(ValidationError);
+    expect(() => validarRegrasNegocio(nfe)).toThrow(ValidationError);
   });
 
   it('should fail when contingency without xJust', () => {
     const nfe = createMinimalNFe();
     nfe.ide.tpEmis = 6; // SVC-AN
     // No xJust
-    expect(() => validateBusinessRules(nfe)).toThrow(ValidationError);
+    expect(() => validarRegrasNegocio(nfe)).toThrow(ValidationError);
+  });
+
+  describe('NFCe (mod=65) business rules', () => {
+    function createNFCe() {
+      const nfe = createMinimalNFe();
+      nfe.ide.mod = 65;
+      nfe.ide.idDest = 1;
+      nfe.ide.indFinal = 1;
+      nfe.ide.indPres = 1;
+      nfe.transp = { modFrete: 9 };
+      return nfe;
+    }
+
+    it('should accept a valid NFCe', () => {
+      expect(() => validarRegrasNegocio(createNFCe())).not.toThrow();
+    });
+
+    it('should reject NFCe with idDest != 1 (apenas operacao interna)', () => {
+      const nfe = createNFCe();
+      nfe.ide.idDest = 2;
+      expect(() => validarRegrasNegocio(nfe)).toThrow(/idDest=1/);
+    });
+
+    it('should reject NFCe sem consumidor final', () => {
+      const nfe = createNFCe();
+      nfe.ide.indFinal = 0;
+      expect(() => validarRegrasNegocio(nfe)).toThrow(/indFinal=1/);
+    });
+
+    it('should reject NFCe com indPres=0 (nao presencial)', () => {
+      const nfe = createNFCe();
+      nfe.ide.indPres = 0;
+      expect(() => validarRegrasNegocio(nfe)).toThrow(/indPres=0/);
+    });
+
+    it('should reject NFCe com frete (modFrete != 9)', () => {
+      const nfe = createNFCe();
+      nfe.transp.modFrete = 0;
+      expect(() => validarRegrasNegocio(nfe)).toThrow(/modFrete=9/);
+    });
+
+    it('should reject NFCe com duplicatas (cobranca a prazo)', () => {
+      const nfe = createNFCe();
+      nfe.cobr = { dup: [{ nDup: '001', dVenc: '2026-06-01', vDup: 100 }] };
+      expect(() => validarRegrasNegocio(nfe)).toThrow(/duplicatas/);
+    });
   });
 });

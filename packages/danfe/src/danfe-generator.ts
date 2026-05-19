@@ -1,6 +1,6 @@
 import PDFDocument from 'pdfkit';
 import { extractDanfeData, type DanfeData } from './danfe-data.js';
-import { generateCode128Bars } from './utils/barcode.js';
+import { gerarBarrasCode128 } from './utils/barcode.js';
 import {
   fmtCNPJ, fmtCPF, fmtCEP, fmtFone, fmtMoney, fmtQtd,
   fmtChaveAcesso, fmtData, fmtDataHora, fmtIE,
@@ -13,7 +13,6 @@ const PAGE_H = 841.89;
 const CONTENT_W = PAGE_W - MARGIN * 2;
 const FONT_LABEL = 6;
 const FONT_VALUE = 8;
-const FONT_TITLE = 10;
 const ROW_H = 22;
 const ITEM_ROW_H = 12;
 
@@ -183,7 +182,6 @@ export class DanfeGenerator {
     doc.text('DESTINATÁRIO / REMETENTE', MARGIN + 2, y);
     y += 8;
 
-    const row1Y = y;
     doc.rect(MARGIN, y, CONTENT_W, ROW_H).stroke();
     this.drawField(doc, 'NOME / RAZÃO SOCIAL', data.destxNome, MARGIN, y, CONTENT_W * 0.55, ROW_H);
     this.drawField(doc, 'CNPJ/CPF', this.fmtDoc(data.destCNPJCPF), MARGIN + CONTENT_W * 0.55, y, CONTENT_W * 0.25, ROW_H);
@@ -439,7 +437,7 @@ export class DanfeGenerator {
     doc: PDFKit.PDFDocument, data: string,
     x: number, y: number, maxW: number, h: number
   ): void {
-    const bars = generateCode128Bars(data);
+    const bars = gerarBarrasCode128(data);
     if (bars.length === 0) return;
 
     const barW = maxW / bars.length;

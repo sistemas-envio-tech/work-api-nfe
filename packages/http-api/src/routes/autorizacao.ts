@@ -19,7 +19,7 @@ export const autorizacaoRouter: ExpressRouter = Router();
  * (NFeClient.consultarRecibo) faz polling automatico ate ter resposta.
  *
  * Validacoes de input minimas (estrutura completa eh validada pelo
- * validateNFe interno do @acbr-node/nfe, via Zod + regras de negocio):
+ * validarNFe interno do @acbr-node/nfe, via Zod + regras de negocio):
  *   - certificado (pfxBase64 + senha) obrigatorio
  *   - cnpj/uf/ambiente obrigatorios (mesma validação de buildNFeClient)
  *   - nfe.ide + nfe.emit + nfe.det[] minimo nao-vazio

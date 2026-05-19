@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { SefazError, SoapError } from '@acbr-node/core';
+import { appLogger } from '../logging/app-logger.js';
 
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction): void {
   if (err instanceof SefazError) {
@@ -19,6 +20,6 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     return;
   }
   const message = err instanceof Error ? err.message : String(err);
-  console.error('[http-api] erro inesperado:', message);
+  appLogger.error('erro inesperado:', message);
   res.status(500).json({ error: 'InternalError', message });
 }

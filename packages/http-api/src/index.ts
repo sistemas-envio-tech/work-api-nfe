@@ -7,6 +7,9 @@ import { healthRouter } from './routes/health.js';
 import { consultaNfeRouter } from './routes/consulta-nfe.js';
 import { manifestacaoRouter } from './routes/manifestacao.js';
 import { autorizacaoRouter } from './routes/autorizacao.js';
+import { cancelamentoRouter } from './routes/cancelamento.js';
+import { cartaCorrecaoRouter } from './routes/carta-correcao.js';
+import { inutilizacaoRouter } from './routes/inutilizacao.js';
 import { danfeRouter } from './routes/danfe.js';
 import { certificadoRouter } from './routes/certificado.js';
 
@@ -20,6 +23,9 @@ app.use('/health', healthRouter);
 app.use('/consulta-nfe', consultaNfeRouter);
 app.use('/manifestacao', manifestacaoRouter);
 app.use('/autorizacao', autorizacaoRouter);
+app.use('/cancelamento', cancelamentoRouter);
+app.use('/carta-correcao', cartaCorrecaoRouter);
+app.use('/inutilizacao', inutilizacaoRouter);
 app.use('/danfe', danfeRouter);
 app.use('/certificado', certificadoRouter);
 

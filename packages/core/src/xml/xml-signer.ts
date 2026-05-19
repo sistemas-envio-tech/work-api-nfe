@@ -52,10 +52,25 @@ export class XmlSigner {
     sig.getKeyInfoContent = () =>
       `<X509Data><X509Certificate>${certBase64}</X509Certificate></X509Data>`;
 
+    // **Importante**: action='after' coloca a <Signature> como IRMA do
+    // elemento referenciado (depois dele). Antes estava 'append', que fazia
+    // a Signature ser FILHA de infNFe — viola o schema NFe 4.00, que exige:
+    //   <NFe>
+    //     <infNFe>...</infNFe>            ← fecha aqui
+    //     <Signature>...</Signature>      ← irma de infNFe
+    //   </NFe>
+    // Com 'append' o XML virava:
+    //   <NFe>
+    //     <infNFe>
+    //       ... campos ...
+    //       <Signature>...</Signature>    ← ERRADO: dentro de infNFe
+    //     </infNFe>
+    //   </NFe>
+    // SEFAZ rejeitava com cStat=225 "Falha no Schema XML do lote de NFe".
     sig.computeSignature(xml, {
       location: {
         reference: `//*[local-name(.)='${referenceUri}']`,
-        action: 'append',
+        action: 'after',
       },
     });
 

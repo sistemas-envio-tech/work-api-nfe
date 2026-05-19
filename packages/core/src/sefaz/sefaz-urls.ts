@@ -1,5 +1,5 @@
 import servicosData from './data/servicos-nfe.json' with { type: 'json' };
-import { getAutorizador, type Autorizador } from './sefaz-authorizers.js';
+import { getAutorizador } from './sefaz-authorizers.js';
 import type { NFeServiceName } from './sefaz-services.js';
 
 export type Ambiente = 'producao' | 'homologacao';

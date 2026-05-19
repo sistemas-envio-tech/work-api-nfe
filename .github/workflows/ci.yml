@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [release]
+  workflow_dispatch:
+
+jobs:
+  quality:
+    name: Typecheck + Lint + Baselines + Test + Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (gera .d.ts pros workspaces)
+        run: pnpm build
+
+      - name: Typecheck (gate .tsc-baseline)
+        run: pnpm check:tsc
+
+      - name: Lint (ESLint estrito)
+        run: pnpm lint
+
+      - name: Gate "as any" (.as-any-baseline)
+        run: pnpm check:asany
+
+      - name: Test (vitest workspace)
+        run: pnpm test

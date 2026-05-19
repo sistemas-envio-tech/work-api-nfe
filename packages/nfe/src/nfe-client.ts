@@ -21,7 +21,7 @@ import {
   type CircuitBreakerOptions,
   createLogger,
 } from '@acbr-node/core';
-import type { NFe, Emitente, Endereco } from './types/nfe.js';
+import type { NFe, Endereco } from './types/nfe.js';
 import type {
   RetornoAutorizacao, RetornoStatusServico, RetornoConsultaProtocolo,
   RetornoInutilizacao, RetornoEvento,

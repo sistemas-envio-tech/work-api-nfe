@@ -5,3 +5,10 @@ dist/
 .env
 *.pfx
 *.p12
+
+# Ferramentas
+coverage/
+.eslintcache
+.husky/_/
+.claude/
+

@@ -1,5 +1,5 @@
 import { XmlBuilder } from '@acbr-node/core';
-import { NFE_NAMESPACE, NFE_VERSAO } from '../types/nfe.js';
+import { NFE_NAMESPACE } from '../types/nfe.js';
 
 export interface ConsultaCadastroParams {
   /** UF do cadastro a consultar */

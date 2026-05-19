@@ -1,4 +1,4 @@
-import { XmlBuilder, type XmlObject, generateAccessKey, generateRandomCode, getUFCode } from '@acbr-node/core';
+import { XmlBuilder, type XmlObject, generateAccessKey, generateRandomCode } from '@acbr-node/core';
 import type { NFe } from '../types/nfe.js';
 import { NFE_NAMESPACE, NFE_VERSAO } from '../types/nfe.js';
 import { buildIde } from './ide-builder.js';

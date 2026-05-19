@@ -27,6 +27,38 @@ pnpm build     # build de todos os packages (turbo)
 pnpm test      # testes unitarios (vitest)
 ```
 
+## Desenvolvimento local
+
+Pra rodar o http-api localmente (modo watch):
+
+```bash
+cp .env.example .env       # copia template das variaveis
+# edita .env se quiser ajustar o token ou portas
+pnpm dev                   # turbo dev — watch em todos os packages
+```
+
+O servidor sobe em `http://127.0.0.1:3002` (config no `.env`). Teste com:
+
+```bash
+# Healthcheck (sem auth)
+curl http://127.0.0.1:3002/health
+
+# Endpoint com auth (use o INTERNAL_TOKEN do seu .env)
+curl -X POST http://127.0.0.1:3002/consulta-nfe/status-servico \
+  -H "Content-Type: application/json" \
+  -H "X-Internal-Token: dev-secret-local-12345" \
+  -d '{"ambiente":2,"uf":"SP","cnpj":"00000000000000",
+       "certificado":{"pfxBase64":"<base64>","senha":"<senha>"}}'
+```
+
+Logs aparecem no terminal com prefixo `[http-api]`. Cada request loga o
+`reqId` (UUID v4) — envie no header `X-Request-Id` para correlacionar
+suas chamadas com os logs do servidor.
+
+> Em homologacao SEFAZ use sempre `ambiente: 2` no payload. Producao (`1`)
+> exige cadastro real da empresa na receita estadual + cert ICP-Brasil
+> ativo.
+
 ## Pipeline de qualidade
 
 | Comando | O que faz |

@@ -125,13 +125,14 @@ export class SoapClient {
 
       // mTLS: passar cert/key (ou pfx) diretamente nas opcoes do https.request.
       // `secureContext` nao e uma option padrao do https.request em todas versoes
-      // do Node — cert/key/pfx sao as vias suportadas oficialmente.
+      // do Node — cert/key/pfx sao as vias suportadas oficialmente. https.RequestOptions
+      // herda tls.SecureContextOptions, entao essas chaves sao tipadas.
       if (this.clientCertPem && this.clientKeyPem) {
-        (options as any).cert = this.clientCertPem;
-        (options as any).key = this.clientKeyPem;
+        options.cert = this.clientCertPem;
+        options.key = this.clientKeyPem;
       } else if (this.clientPfxBuffer) {
-        (options as any).pfx = this.clientPfxBuffer;
-        if (this.clientPfxPassphrase) (options as any).passphrase = this.clientPfxPassphrase;
+        options.pfx = this.clientPfxBuffer;
+        if (this.clientPfxPassphrase) options.passphrase = this.clientPfxPassphrase;
       }
 
       const req = https.request(options, (res) => {

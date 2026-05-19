@@ -5,7 +5,7 @@ export interface LoggerInterface {
   error(message: string, ...args: unknown[]): void;
 }
 
-export const noopLogger: LoggerInterface = {
+export const loggerNoop: LoggerInterface = {
   debug() {},
   info() {},
   warn() {},
@@ -15,7 +15,7 @@ export const noopLogger: LoggerInterface = {
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
 
 export interface LoggerOptions {
-  /** Limiar minimo. 'silent' = noopLogger. Default 'info'. */
+  /** Limiar minimo. 'silent' = loggerNoop. Default 'info'. */
   level?: LogLevel;
   /** Prefixo prependado a toda mensagem. Default '[acbr-node]'. */
   prefix?: string;
@@ -29,17 +29,17 @@ const LEVEL_ORDER: Record<LogLevel, number> = {
 
 /**
  * Cria um logger com nivel/prefixo/contexto. Aceita boolean por retrocompat:
- * `createLogger(true)` equivale a `createLogger({ level: 'info' })` e
- * `createLogger(false)` equivale ao noopLogger.
+ * `criarLogger(true)` equivale a `criarLogger({ level: 'info' })` e
+ * `criarLogger(false)` equivale ao loggerNoop.
  */
-export function createLogger(enabledOrOptions: boolean | LoggerOptions = true): LoggerInterface {
+export function criarLogger(enabledOrOptions: boolean | LoggerOptions = true): LoggerInterface {
   if (typeof enabledOrOptions === 'boolean') {
-    return enabledOrOptions ? createLogger({}) : noopLogger;
+    return enabledOrOptions ? criarLogger({}) : loggerNoop;
   }
 
   const { level = 'info', prefix = '[acbr-node]', context } = enabledOrOptions;
   const threshold = LEVEL_ORDER[level];
-  if (threshold >= LEVEL_ORDER.silent) return noopLogger;
+  if (threshold >= LEVEL_ORDER.silent) return loggerNoop;
 
   const ctxStr = context
     ? ' ' + Object.entries(context).map(([k, v]) => `${k}=${v}`).join(' ')

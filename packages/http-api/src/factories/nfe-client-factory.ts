@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer';
 import { NFeClient, type EmpresaConfig, type Endereco } from '@acbr-node/nfe';
-import { createLogger } from '@acbr-node/core';
+import { criarLogger } from '@acbr-node/core';
 import { env } from '../config/env.js';
 
 export interface CertificadoPayload {
@@ -24,7 +24,7 @@ export interface NFeClientPayload {
    *
    * Para eventos (cancelamento/CCe/inutilizacao) o SEFAZ usa apenas o CNPJ,
    * entao este campo e opcional aqui. Para emissao real de NFe (modelo 55)
-   * o leiaute SEFAZ exige o enderEmit completo — neste caso o objeto NFe ja
+   * o leiaute SEFAZ exige o enderEmit completo â€” neste caso o objeto NFe ja
    * carrega seu proprio emit.enderEmit, mas o NFeClient tambem pode usar
    * este endereco internamente (ex.: NFCe modelo 65 futuramente).
    *
@@ -35,7 +35,7 @@ export interface NFeClientPayload {
   logXml?: boolean;
 }
 
-const logger = createLogger(env.logLevel === 'debug');
+const logger = criarLogger(env.logLevel === 'debug');
 
 function buildEmpresa(payload: NFeClientPayload): EmpresaConfig {
   return {

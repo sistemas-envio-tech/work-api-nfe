@@ -1,9 +1,9 @@
 /**
- * Gera a chave de acesso de 44 dígitos da NFe
+ * Gera a chave de acesso de 44 dÃ­gitos da NFe
  *
- * Composição: cUF(2) + AAMM(4) + CNPJ(14) + mod(2) + serie(3) + nNF(9) + tpEmis(1) + cNF(8) + cDV(1)
+ * ComposiÃ§Ã£o: cUF(2) + AAMM(4) + CNPJ(14) + mod(2) + serie(3) + nNF(9) + tpEmis(1) + cNF(8) + cDV(1)
  */
-export function generateAccessKey(params: {
+export function gerarChaveAcesso(params: {
   cUF: number;
   dataEmissao: Date;
   cnpj: string;
@@ -29,15 +29,15 @@ export function generateAccessKey(params: {
     String(cNF).padStart(8, '0'),
   ].join('');
 
-  const cDV = calculateMod11(keyWithoutDV);
+  const cDV = calcularMod11(keyWithoutDV);
   return keyWithoutDV + cDV;
 }
 
 /**
- * Calcula dígito verificador módulo 11
- * Pesos de 2 a 9 da direita para esquerda, cíclico
+ * Calcula dÃ­gito verificador mÃ³dulo 11
+ * Pesos de 2 a 9 da direita para esquerda, cÃ­clico
  */
-export function calculateMod11(value: string): number {
+export function calcularMod11(value: string): number {
   const digits = value.split('').map(Number).reverse();
   let sum = 0;
   let weight = 2;
@@ -53,19 +53,19 @@ export function calculateMod11(value: string): number {
 }
 
 /**
- * Valida chave de acesso NFe (44 dígitos + dígito verificador)
+ * Valida chave de acesso NFe (44 dÃ­gitos + dÃ­gito verificador)
  */
-export function validateAccessKey(key: string): boolean {
+export function validarChaveAcesso(key: string): boolean {
   if (!/^\d{44}$/.test(key)) return false;
 
   const keyWithoutDV = key.slice(0, 43);
-  const expectedDV = calculateMod11(keyWithoutDV);
+  const expectedDV = calcularMod11(keyWithoutDV);
   return Number(key[43]) === expectedDV;
 }
 
 /**
- * Gera código numérico aleatório de 8 dígitos para compor a chave de acesso
+ * Gera cÃ³digo numÃ©rico aleatÃ³rio de 8 dÃ­gitos para compor a chave de acesso
  */
-export function generateRandomCode(): number {
+export function gerarCodigoAleatorio(): number {
   return Math.floor(10000000 + Math.random() * 89999999);
 }

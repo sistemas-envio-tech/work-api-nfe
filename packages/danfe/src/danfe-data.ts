@@ -1,9 +1,9 @@
-import { XmlParser, asXmlNode, asXmlArray, type XmlNode, type XmlValue } from '@acbr-node/core';
+import { XmlParser, comoNoXml, comoArrayXml, type XmlNode, type XmlValue } from '@acbr-node/core';
 
 const parser = new XmlParser();
 
 /**
- * Dados extraídos do XML da NFe/nfeProc para renderizar o DANFE
+ * Dados extraÃ­dos do XML da NFe/nfeProc para renderizar o DANFE
  */
 export interface DanfeData {
   chaveAcesso: string;
@@ -113,42 +113,42 @@ export function extractDanfeData(xml: string): DanfeData {
   const parsed = parser.parse<XmlNode>(xml);
 
   // Navegar: nfeProc > NFe > infNFe  ou  NFe > infNFe
-  const nfeProc = asXmlNode(parsed.nfeProc);
-  const nfeArr = asXmlArray(nfeProc.NFe ?? parsed.NFe);
+  const nfeProc = comoNoXml(parsed.nfeProc);
+  const nfeArr = comoArrayXml(nfeProc.NFe ?? parsed.NFe);
   const nfe = nfeArr[0] ?? {};
-  const infNFe = asXmlNode(nfe.infNFe ?? nfe);
+  const infNFe = comoNoXml(nfe.infNFe ?? nfe);
 
   // Protocolo
-  const protArr = asXmlArray(nfeProc.protNFe);
+  const protArr = comoArrayXml(nfeProc.protNFe);
   const prot = protArr[0] ?? {};
-  const infProt = asXmlNode(prot.infProt ?? prot);
+  const infProt = comoNoXml(prot.infProt ?? prot);
 
   // Chave de acesso do Id (ex.: "NFe35230612345...")
   const chave = str(infNFe['@_Id']).replace('NFe', '');
 
-  const ide = asXmlNode(infNFe.ide);
-  const emit = asXmlNode(infNFe.emit);
-  const enderEmit = asXmlNode(emit.enderEmit);
-  const dest = asXmlNode(infNFe.dest);
-  const enderDest = asXmlNode(dest.enderDest);
-  const total = asXmlNode(asXmlNode(infNFe.total).ICMSTot);
-  const transp = asXmlNode(infNFe.transp);
-  const transporta = asXmlNode(transp.transporta);
-  const pag = asXmlNode(infNFe.pag);
-  const cobr = asXmlNode(infNFe.cobr);
-  const infAdic = asXmlNode(infNFe.infAdic);
+  const ide = comoNoXml(infNFe.ide);
+  const emit = comoNoXml(infNFe.emit);
+  const enderEmit = comoNoXml(emit.enderEmit);
+  const dest = comoNoXml(infNFe.dest);
+  const enderDest = comoNoXml(dest.enderDest);
+  const total = comoNoXml(comoNoXml(infNFe.total).ICMSTot);
+  const transp = comoNoXml(infNFe.transp);
+  const transporta = comoNoXml(transp.transporta);
+  const pag = comoNoXml(infNFe.pag);
+  const cobr = comoNoXml(infNFe.cobr);
+  const infAdic = comoNoXml(infNFe.infAdic);
 
   // Items
-  const dets = asXmlArray(infNFe.det);
+  const dets = comoArrayXml(infNFe.det);
 
   const itens = dets.map((d) => {
-    const prod = asXmlNode(d.prod);
-    const imposto = asXmlNode(d.imposto);
-    const icms = asXmlNode(imposto.ICMS);
+    const prod = comoNoXml(d.prod);
+    const imposto = comoNoXml(d.imposto);
+    const icms = comoNoXml(imposto.ICMS);
     // ICMS tem 1 chave por CST/CSOSN (ICMS00, ICMSSN101, etc.). Pegamos a primeira.
-    const icmsObj = asXmlNode(Object.values(icms)[0]);
-    const ipi = asXmlNode(imposto.IPI);
-    const ipiTrib = asXmlNode(ipi.IPITrib);
+    const icmsObj = comoNoXml(Object.values(icms)[0]);
+    const ipi = comoNoXml(imposto.IPI);
+    const ipiTrib = comoNoXml(ipi.IPITrib);
 
     return {
       nItem: str(d['@_nItem']),
@@ -170,9 +170,9 @@ export function extractDanfeData(xml: string): DanfeData {
     };
   });
 
-  const dups = asXmlArray(cobr.dup);
-  const detPags = asXmlArray(pag.detPag);
-  const vols = asXmlArray(transp.vol);
+  const dups = comoArrayXml(cobr.dup);
+  const detPags = comoArrayXml(pag.detPag);
+  const vols = comoArrayXml(transp.vol);
 
   return {
     chaveAcesso: chave,

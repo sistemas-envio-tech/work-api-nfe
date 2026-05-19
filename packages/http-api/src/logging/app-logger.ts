@@ -1,4 +1,4 @@
-import { createLogger, type LoggerInterface } from '@acbr-node/core';
+import { criarLogger, type LoggerInterface } from '@acbr-node/core';
 import { env } from '../config/env.js';
 
 /**
@@ -6,7 +6,7 @@ import { env } from '../config/env.js';
  * e prefixa todas as mensagens com [http-api] para facilitar filtragem em
  * producao (Railway logs, datadog, etc.).
  */
-export const appLogger: LoggerInterface = createLogger({
+export const appLogger: LoggerInterface = criarLogger({
   level: env.logLevel,
   prefix: '[http-api]',
 });

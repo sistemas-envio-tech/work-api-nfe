@@ -1,26 +1,26 @@
 export {
-  isValidCNPJ,
-  isValidCPF,
-  isValidIE,
-  formatCNPJ,
-  formatCPF,
+  cnpjValido,
+  cpfValido,
+  ieValida,
+  formatarCNPJ,
+  formatarCPF,
 } from './validators.js';
 
 export {
-  generateAccessKey,
-  calculateMod11,
-  validateAccessKey,
-  generateRandomCode,
+  gerarChaveAcesso,
+  calcularMod11,
+  validarChaveAcesso,
+  gerarCodigoAleatorio,
 } from './access-key.js';
 
 export {
-  getTimezoneOffset,
-  formatNFeDate,
-  nowNFe,
+  obterOffsetTimezone,
+  formatarDataNFe,
+  agoraNFe,
 } from './date-utils.js';
 
 export {
-  withRetry,
+  executarComRetry,
   type RetryOptions,
 } from './retry.js';
 
@@ -32,6 +32,6 @@ export {
 
 export {
   IBGE_UF,
-  getUFCode,
-  getUFByCode,
+  obterCodigoUF,
+  obterUFPorCodigo,
 } from './ibge-codes.js';

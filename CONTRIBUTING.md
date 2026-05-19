@@ -73,10 +73,15 @@ atualizar o baseline.
 
 - TypeScript **strict** em todo lugar. Veja `tsconfig.base.json`.
 - ESM nativo (`"type": "module"`). Imports relativos com `.js` mesmo em arquivos `.ts`.
-- Nao usar `as any`. Para narrowing de XML parseado, use `asXmlNode` / `asXmlArray`
+- Nao usar `as any`. Para narrowing de XML parseado, use `comoNoXml` / `comoArrayXml`
   de `@acbr-node/core` (ver `packages/danfe/src/danfe-data.ts` como referencia).
 - Validacao de input: Zod (`@acbr-node/nfe` usa para o leiaute SEFAZ). Para http-api,
   validacoes minimas inline na rota antes de chamar `buildNFeClient`.
+- Convencao de nomenclatura: identificadores em pt-BR (verbos como `validar*`,
+  `obter*`, `criar*`, `gerar*`, `formatar*`). Excecoes intencionais: classes
+  brand-like (`NFeClient`, `XmlParser`, erros `*Error`), prefixos `build*`/`parse*`
+  dos builders/parsers XML (idioma universal no dominio) e acronimos SEFAZ
+  (NFe, CNPJ, IE, CFOP, etc.). NFCe (modelo 65) ainda nao implementada.
 - Logger: use `appLogger` (em http-api) ou `LoggerInterface` injetado. Nao usar
   `console.*` diretamente em codigo de runtime.
 - Testes: Vitest em `__tests__/` no nivel do package.

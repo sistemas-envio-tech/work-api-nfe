@@ -1,7 +1,7 @@
 /**
- * Valida CNPJ (14 dígitos)
+ * Valida CNPJ (14 dÃ­gitos)
  */
-export function isValidCNPJ(cnpj: string): boolean {
+export function cnpjValido(cnpj: string): boolean {
   const cleaned = cnpj.replace(/\D/g, '');
   if (cleaned.length !== 14) return false;
   if (/^(\d)\1+$/.test(cleaned)) return false;
@@ -25,9 +25,9 @@ export function isValidCNPJ(cnpj: string): boolean {
 }
 
 /**
- * Valida CPF (11 dígitos)
+ * Valida CPF (11 dÃ­gitos)
  */
-export function isValidCPF(cpf: string): boolean {
+export function cpfValido(cpf: string): boolean {
   const cleaned = cpf.replace(/\D/g, '');
   if (cleaned.length !== 11) return false;
   if (/^(\d)\1+$/.test(cleaned)) return false;
@@ -48,10 +48,10 @@ export function isValidCPF(cpf: string): boolean {
 }
 
 /**
- * Valida Inscrição Estadual genérica (verifica se contém apenas dígitos e tem tamanho razoável)
- * Validação completa depende do estado - implementar por UF se necessário
+ * Valida InscriÃ§Ã£o Estadual genÃ©rica (verifica se contÃ©m apenas dÃ­gitos e tem tamanho razoÃ¡vel)
+ * ValidaÃ§Ã£o completa depende do estado - implementar por UF se necessÃ¡rio
  */
-export function isValidIE(ie: string, _uf?: string): boolean {
+export function ieValida(ie: string, _uf?: string): boolean {
   const cleaned = ie.replace(/\D/g, '');
   if (cleaned === 'ISENTO') return true;
   if (cleaned.length < 2 || cleaned.length > 14) return false;
@@ -59,9 +59,9 @@ export function isValidIE(ie: string, _uf?: string): boolean {
 }
 
 /**
- * Formata CNPJ: 12345678000199 → 12.345.678/0001-99
+ * Formata CNPJ: 12345678000199 â†’ 12.345.678/0001-99
  */
-export function formatCNPJ(cnpj: string): string {
+export function formatarCNPJ(cnpj: string): string {
   const cleaned = cnpj.replace(/\D/g, '');
   return cleaned.replace(
     /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
@@ -70,9 +70,9 @@ export function formatCNPJ(cnpj: string): string {
 }
 
 /**
- * Formata CPF: 12345678901 → 123.456.789-01
+ * Formata CPF: 12345678901 â†’ 123.456.789-01
  */
-export function formatCPF(cpf: string): string {
+export function formatarCPF(cpf: string): string {
   const cleaned = cpf.replace(/\D/g, '');
   return cleaned.replace(
     /^(\d{3})(\d{3})(\d{3})(\d{2})$/,

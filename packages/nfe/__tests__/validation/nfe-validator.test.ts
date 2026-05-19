@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateNFe, validateBusinessRules } from '../../src/validation/nfe-validator.js';
+import { validarNFe, validarRegrasNegocio } from '../../src/validation/nfe-validator.js';
 import { ValidationError } from '@acbr-node/core';
 
 function createMinimalNFe() {
@@ -35,52 +35,65 @@ function createMinimalNFe() {
   };
 }
 
-describe('validateNFe', () => {
+describe('validarNFe', () => {
   it('should pass for valid NFe', () => {
-    expect(() => validateNFe(createMinimalNFe())).not.toThrow();
+    expect(() => validarNFe(createMinimalNFe())).not.toThrow();
   });
 
   it('should fail for missing emitente CNPJ and CPF', () => {
     const nfe = createMinimalNFe();
     (nfe.emit as any).CNPJ = undefined;
-    expect(() => validateNFe(nfe)).toThrow(ValidationError);
+    expect(() => validarNFe(nfe)).toThrow(ValidationError);
   });
 
   it('should fail for empty det array', () => {
     const nfe = createMinimalNFe();
     nfe.det = [];
-    expect(() => validateNFe(nfe)).toThrow(ValidationError);
+    expect(() => validarNFe(nfe)).toThrow(ValidationError);
   });
 
   it('should fail for invalid NCM', () => {
     const nfe = createMinimalNFe();
     nfe.det[0].prod.NCM = '123'; // should be 8 digits
-    expect(() => validateNFe(nfe)).toThrow(ValidationError);
+    expect(() => validarNFe(nfe)).toThrow(ValidationError);
   });
 
   it('should fail for invalid CFOP', () => {
     const nfe = createMinimalNFe();
     nfe.det[0].prod.CFOP = '51'; // should be 4 digits
-    expect(() => validateNFe(nfe)).toThrow(ValidationError);
+    expect(() => validarNFe(nfe)).toThrow(ValidationError);
   });
 
   it('should fail for invalid CEP', () => {
     const nfe = createMinimalNFe();
     nfe.emit.enderEmit.CEP = '123'; // should be 8 digits
-    expect(() => validateNFe(nfe)).toThrow(ValidationError);
+    expect(() => validarNFe(nfe)).toThrow(ValidationError);
   });
 
   it('should fail for missing pagamento', () => {
     const nfe = createMinimalNFe();
     nfe.pag.detPag = [];
-    expect(() => validateNFe(nfe)).toThrow(ValidationError);
+    expect(() => validarNFe(nfe)).toThrow(ValidationError);
+  });
+
+  it('should reject NFCe (mod=65) with friendly error', () => {
+    const nfe = createMinimalNFe();
+    nfe.ide.mod = 65;
+    try {
+      validarNFe(nfe);
+      expect.fail('Should have thrown');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ValidationError);
+      expect((e as ValidationError).message).toContain('NFCe');
+      expect((e as ValidationError).message).toContain('nao suportada');
+    }
   });
 
   it('should include field path in error details', () => {
     const nfe = createMinimalNFe();
     nfe.det[0].prod.NCM = 'XX';
     try {
-      validateNFe(nfe);
+      validarNFe(nfe);
       expect.fail('Should have thrown');
     } catch (e) {
       expect(e).toBeInstanceOf(ValidationError);
@@ -90,22 +103,22 @@ describe('validateNFe', () => {
   });
 });
 
-describe('validateBusinessRules', () => {
+describe('validarRegrasNegocio', () => {
   it('should pass for correct totals', () => {
     const nfe = createMinimalNFe();
-    expect(() => validateBusinessRules(nfe)).not.toThrow();
+    expect(() => validarRegrasNegocio(nfe)).not.toThrow();
   });
 
   it('should fail when vProd does not match sum of items', () => {
     const nfe = createMinimalNFe();
     nfe.total.ICMSTot.vProd = 999; // should be 100
-    expect(() => validateBusinessRules(nfe)).toThrow(ValidationError);
+    expect(() => validarRegrasNegocio(nfe)).toThrow(ValidationError);
   });
 
   it('should fail when contingency without xJust', () => {
     const nfe = createMinimalNFe();
     nfe.ide.tpEmis = 6; // SVC-AN
     // No xJust
-    expect(() => validateBusinessRules(nfe)).toThrow(ValidationError);
+    expect(() => validarRegrasNegocio(nfe)).toThrow(ValidationError);
   });
 });

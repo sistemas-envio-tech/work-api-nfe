@@ -1,6 +1,6 @@
 export {
-  getAutorizador,
-  getUFsByAutorizador,
+  obterAutorizador,
+  obterUFsPorAutorizador,
   type Autorizador,
 } from './sefaz-authorizers.js';
 
@@ -11,17 +11,17 @@ export {
 } from './sefaz-services.js';
 
 export {
-  getSefazUrl,
-  getDistribuicaoDFeUrl,
-  setSefazUrlOverride,
-  clearSefazUrlOverride,
-  listAutorizadores,
+  obterUrlSefaz,
+  obterUrlDistribuicaoDFe,
+  definirOverrideUrlSefaz,
+  limparOverrideUrlSefaz,
+  listarAutorizadores,
   type Ambiente,
 } from './sefaz-urls.js';
 
 export {
   TIPO_EMISSAO,
-  getTipoEmissaoContingencia,
-  getContingencyUrl,
+  obterTipoEmissaoContingencia,
+  obterUrlContingencia,
   type ContingencyConfig,
 } from './contingency.js';

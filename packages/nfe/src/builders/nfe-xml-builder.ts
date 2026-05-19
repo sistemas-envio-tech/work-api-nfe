@@ -1,4 +1,4 @@
-import { XmlBuilder, type XmlObject, generateAccessKey, generateRandomCode } from '@acbr-node/core';
+import { XmlBuilder, type XmlObject, gerarChaveAcesso, gerarCodigoAleatorio } from '@acbr-node/core';
 import type { NFe } from '../types/nfe.js';
 import { NFE_NAMESPACE, NFE_VERSAO } from '../types/nfe.js';
 import { buildIde } from './ide-builder.js';
@@ -18,11 +18,11 @@ import { buildInfRespTec } from './resp-tec-builder.js';
  * Estrutura: NFe > infNFe (versao, Id) > ide, emit, dest, det[], total, transp, cobr, pag, infAdic
  */
 export function buildNFeXml(nfe: NFe): { xml: string; chaveAcesso: string } {
-  // Gerar código numérico se não informado
-  const cNF = nfe.ide.cNF ?? generateRandomCode();
+  // Gerar cÃ³digo numÃ©rico se nÃ£o informado
+  const cNF = nfe.ide.cNF ?? gerarCodigoAleatorio();
 
   // Gerar chave de acesso
-  const chaveAcesso = generateAccessKey({
+  const chaveAcesso = gerarChaveAcesso({
     cUF: nfe.ide.cUF,
     dataEmissao: new Date(nfe.ide.dhEmi),
     cnpj: (nfe.emit.CNPJ || nfe.emit.CPF)!,
@@ -84,7 +84,7 @@ export function buildEnviNFeXml(
 }
 
 /**
- * Monta o XML de consulta de status do serviço
+ * Monta o XML de consulta de status do serviÃ§o
  */
 export function buildConsStatServXml(tpAmb: number, cUF: number): string {
   return XmlBuilder.build('consStatServ', {
@@ -110,7 +110,7 @@ export function buildConsSitNFeXml(tpAmb: number, chNFe: string): string {
 }
 
 /**
- * Monta o XML de inutilização
+ * Monta o XML de inutilizaÃ§Ã£o
  */
 export function buildInutNFeXml(params: {
   tpAmb: number;

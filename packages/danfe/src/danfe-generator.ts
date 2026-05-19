@@ -1,6 +1,6 @@
 import PDFDocument from 'pdfkit';
 import { extractDanfeData, type DanfeData } from './danfe-data.js';
-import { generateCode128Bars } from './utils/barcode.js';
+import { gerarBarrasCode128 } from './utils/barcode.js';
 import {
   fmtCNPJ, fmtCPF, fmtCEP, fmtFone, fmtMoney, fmtQtd,
   fmtChaveAcesso, fmtData, fmtDataHora, fmtIE,
@@ -19,7 +19,7 @@ const ITEM_ROW_H = 12;
 export interface DanfeOptions {
   /** Logo da empresa (Buffer PNG/JPEG) */
   logo?: Buffer;
-  /** Largura do logo em pontos (padrão: 80) */
+  /** Largura do logo em pontos (padrÃ£o: 80) */
   logoWidth?: number;
 }
 
@@ -34,7 +34,7 @@ export class DanfeGenerator {
   }
 
   /**
-   * Gera DANFE a partir de dados já extraídos
+   * Gera DANFE a partir de dados jÃ¡ extraÃ­dos
    */
   async gerarDanfeFromData(data: DanfeData, options?: DanfeOptions): Promise<Buffer> {
     return this.renderPdf(data, options);
@@ -81,7 +81,7 @@ export class DanfeGenerator {
   }
 
   private calculatePages(data: DanfeData): number {
-    // Espaço disponível para itens por página
+    // EspaÃ§o disponÃ­vel para itens por pÃ¡gina
     const headerSpace = 280; // header + dest + impostos + transp + produtos header
     const footerSpace = 80;  // info adicional
     const itemSpace = PAGE_H - MARGIN * 2 - headerSpace - footerSpace;
@@ -91,7 +91,7 @@ export class DanfeGenerator {
     return Math.ceil(data.itens.length / itemsPerPage);
   }
 
-  // ─── HEADER ───
+  // â”€â”€â”€ HEADER â”€â”€â”€
 
   private drawHeader(
     doc: PDFKit.PDFDocument, data: DanfeData, y: number,
@@ -105,13 +105,13 @@ export class DanfeGenerator {
     // Border do header
     doc.rect(MARGIN, y, CONTENT_W, 90).stroke();
 
-    // ── Coluna 1: Logo + Emitente ──
+    // â”€â”€ Coluna 1: Logo + Emitente â”€â”€
     doc.rect(MARGIN, y, colLogoW, 90).stroke();
 
     if (options?.logo) {
       try {
         doc.image(options.logo, MARGIN + 5, y + 5, { width: options.logoWidth ?? 60, height: 30 });
-      } catch { /* logo inválido, pular */ }
+      } catch { /* logo invÃ¡lido, pular */ }
     }
 
     const emitX = MARGIN + (options?.logo ? (options.logoWidth ?? 60) + 10 : 5);
@@ -126,25 +126,25 @@ export class DanfeGenerator {
     emitY += 8;
     doc.text(`${data.emitMunUF}  Fone: ${fmtFone(data.emitFone)}`, MARGIN + 5, emitY, { width: colLogoW - 10 });
 
-    // ── Coluna 2: DANFE ──
+    // â”€â”€ Coluna 2: DANFE â”€â”€
     const danfeX = MARGIN + colLogoW;
     doc.rect(danfeX, y, colDanfeW, 90).stroke();
     doc.font('Helvetica-Bold').fontSize(12);
     doc.text('DANFE', danfeX, y + 5, { width: colDanfeW, align: 'center' });
     doc.font('Helvetica').fontSize(FONT_LABEL);
     doc.text('Documento Auxiliar da', danfeX, y + 22, { width: colDanfeW, align: 'center' });
-    doc.text('Nota Fiscal Eletrônica', danfeX, y + 30, { width: colDanfeW, align: 'center' });
+    doc.text('Nota Fiscal EletrÃ´nica', danfeX, y + 30, { width: colDanfeW, align: 'center' });
 
     doc.font('Helvetica-Bold').fontSize(FONT_VALUE);
-    const tipoNF = data.tpNF === '0' ? '0 - ENTRADA' : '1 - SAÍDA';
+    const tipoNF = data.tpNF === '0' ? '0 - ENTRADA' : '1 - SAÃDA';
     doc.text(tipoNF, danfeX, y + 45, { width: colDanfeW, align: 'center' });
 
     doc.font('Helvetica').fontSize(FONT_LABEL);
-    doc.text(`Nº ${data.nNF}`, danfeX, y + 60, { width: colDanfeW, align: 'center' });
-    doc.text(`Série ${data.serie}`, danfeX, y + 68, { width: colDanfeW, align: 'center' });
+    doc.text(`NÂº ${data.nNF}`, danfeX, y + 60, { width: colDanfeW, align: 'center' });
+    doc.text(`SÃ©rie ${data.serie}`, danfeX, y + 68, { width: colDanfeW, align: 'center' });
     doc.text(`Folha ${page}/${totalPages}`, danfeX, y + 76, { width: colDanfeW, align: 'center' });
 
-    // ── Coluna 3: Barcode + Chave ──
+    // â”€â”€ Coluna 3: Barcode + Chave â”€â”€
     const chaveX = danfeX + colDanfeW;
     doc.rect(chaveX, y, colChaveW, 90).stroke();
 
@@ -159,65 +159,65 @@ export class DanfeGenerator {
     doc.text(fmtChaveAcesso(data.chaveAcesso), chaveX + 5, y + 47, { width: colChaveW - 10 });
 
     doc.font('Helvetica').fontSize(FONT_LABEL);
-    doc.text(`Protocolo de Autorização: ${data.nProt}`, chaveX + 5, y + 62, { width: colChaveW - 10 });
+    doc.text(`Protocolo de AutorizaÃ§Ã£o: ${data.nProt}`, chaveX + 5, y + 62, { width: colChaveW - 10 });
     doc.text(`Data: ${fmtDataHora(data.dhRecbto)}`, chaveX + 5, y + 72, { width: colChaveW - 10 });
 
     y = startY + 92;
 
-    // Natureza da operação + IE + IE/ST + CNPJ
+    // Natureza da operaÃ§Ã£o + IE + IE/ST + CNPJ
     const row2H = ROW_H;
     doc.rect(MARGIN, y, CONTENT_W, row2H).stroke();
-    this.drawField(doc, 'NATUREZA DA OPERAÇÃO', data.natOp, MARGIN, y, CONTENT_W * 0.5, row2H);
-    this.drawField(doc, 'INSCRIÇÃO ESTADUAL', fmtIE(data.emitIE), MARGIN + CONTENT_W * 0.5, y, CONTENT_W * 0.2, row2H);
+    this.drawField(doc, 'NATUREZA DA OPERAÃ‡ÃƒO', data.natOp, MARGIN, y, CONTENT_W * 0.5, row2H);
+    this.drawField(doc, 'INSCRIÃ‡ÃƒO ESTADUAL', fmtIE(data.emitIE), MARGIN + CONTENT_W * 0.5, y, CONTENT_W * 0.2, row2H);
     this.drawField(doc, 'I.E. DO SUBST. TRIB.', data.emitIEST, MARGIN + CONTENT_W * 0.7, y, CONTENT_W * 0.15, row2H);
     this.drawField(doc, 'CNPJ', fmtCNPJ(data.emitCNPJ), MARGIN + CONTENT_W * 0.85, y, CONTENT_W * 0.15, row2H);
 
     return y + row2H + 2;
   }
 
-  // ─── DESTINATÁRIO ───
+  // â”€â”€â”€ DESTINATÃRIO â”€â”€â”€
 
   private drawDestinatario(doc: PDFKit.PDFDocument, data: DanfeData, y: number): number {
     doc.font('Helvetica-Bold').fontSize(FONT_LABEL);
-    doc.text('DESTINATÁRIO / REMETENTE', MARGIN + 2, y);
+    doc.text('DESTINATÃRIO / REMETENTE', MARGIN + 2, y);
     y += 8;
 
     doc.rect(MARGIN, y, CONTENT_W, ROW_H).stroke();
-    this.drawField(doc, 'NOME / RAZÃO SOCIAL', data.destxNome, MARGIN, y, CONTENT_W * 0.55, ROW_H);
+    this.drawField(doc, 'NOME / RAZÃƒO SOCIAL', data.destxNome, MARGIN, y, CONTENT_W * 0.55, ROW_H);
     this.drawField(doc, 'CNPJ/CPF', this.fmtDoc(data.destCNPJCPF), MARGIN + CONTENT_W * 0.55, y, CONTENT_W * 0.25, ROW_H);
-    this.drawField(doc, 'DATA DA EMISSÃO', fmtData(data.dhEmi), MARGIN + CONTENT_W * 0.8, y, CONTENT_W * 0.2, ROW_H);
+    this.drawField(doc, 'DATA DA EMISSÃƒO', fmtData(data.dhEmi), MARGIN + CONTENT_W * 0.8, y, CONTENT_W * 0.2, ROW_H);
     y += ROW_H;
 
     doc.rect(MARGIN, y, CONTENT_W, ROW_H).stroke();
-    this.drawField(doc, 'ENDEREÇO', data.destEndereco, MARGIN, y, CONTENT_W * 0.4, ROW_H);
+    this.drawField(doc, 'ENDEREÃ‡O', data.destEndereco, MARGIN, y, CONTENT_W * 0.4, ROW_H);
     this.drawField(doc, 'BAIRRO', data.destBairro, MARGIN + CONTENT_W * 0.4, y, CONTENT_W * 0.2, ROW_H);
     this.drawField(doc, 'CEP', fmtCEP(data.destCEP), MARGIN + CONTENT_W * 0.6, y, CONTENT_W * 0.1, ROW_H);
-    this.drawField(doc, 'DATA SAÍDA/ENTRADA', fmtData(data.dhSaiEnt), MARGIN + CONTENT_W * 0.7, y, CONTENT_W * 0.3, ROW_H);
+    this.drawField(doc, 'DATA SAÃDA/ENTRADA', fmtData(data.dhSaiEnt), MARGIN + CONTENT_W * 0.7, y, CONTENT_W * 0.3, ROW_H);
     y += ROW_H;
 
     doc.rect(MARGIN, y, CONTENT_W, ROW_H).stroke();
-    this.drawField(doc, 'MUNICÍPIO', data.destMunUF, MARGIN, y, CONTENT_W * 0.4, ROW_H);
+    this.drawField(doc, 'MUNICÃPIO', data.destMunUF, MARGIN, y, CONTENT_W * 0.4, ROW_H);
     this.drawField(doc, 'FONE/FAX', fmtFone(data.destFone), MARGIN + CONTENT_W * 0.4, y, CONTENT_W * 0.2, ROW_H);
     this.drawField(doc, 'UF', data.destMunUF.split(' - ').pop() || '', MARGIN + CONTENT_W * 0.6, y, CONTENT_W * 0.05, ROW_H);
-    this.drawField(doc, 'INSCRIÇÃO ESTADUAL', fmtIE(data.destIE), MARGIN + CONTENT_W * 0.65, y, CONTENT_W * 0.2, ROW_H);
-    this.drawField(doc, 'HORA DA SAÍDA', data.dhSaiEnt ? data.dhSaiEnt.slice(11, 19) : '', MARGIN + CONTENT_W * 0.85, y, CONTENT_W * 0.15, ROW_H);
+    this.drawField(doc, 'INSCRIÃ‡ÃƒO ESTADUAL', fmtIE(data.destIE), MARGIN + CONTENT_W * 0.65, y, CONTENT_W * 0.2, ROW_H);
+    this.drawField(doc, 'HORA DA SAÃDA', data.dhSaiEnt ? data.dhSaiEnt.slice(11, 19) : '', MARGIN + CONTENT_W * 0.85, y, CONTENT_W * 0.15, ROW_H);
 
     return y + ROW_H + 2;
   }
 
-  // ─── IMPOSTOS ───
+  // â”€â”€â”€ IMPOSTOS â”€â”€â”€
 
   private drawImpostos(doc: PDFKit.PDFDocument, data: DanfeData, y: number): number {
     doc.font('Helvetica-Bold').fontSize(FONT_LABEL);
-    doc.text('CÁLCULO DO IMPOSTO', MARGIN + 2, y);
+    doc.text('CÃLCULO DO IMPOSTO', MARGIN + 2, y);
     y += 8;
 
     const cols = [
-      { label: 'BASE DE CÁLC. DO ICMS', value: fmtMoney(data.vBC), w: 0.17 },
+      { label: 'BASE DE CÃLC. DO ICMS', value: fmtMoney(data.vBC), w: 0.17 },
       { label: 'VALOR DO ICMS', value: fmtMoney(data.vICMS), w: 0.14 },
-      { label: 'BASE DE CÁLC. ICMS ST', value: fmtMoney(data.vBCST), w: 0.17 },
+      { label: 'BASE DE CÃLC. ICMS ST', value: fmtMoney(data.vBCST), w: 0.17 },
       { label: 'VALOR DO ICMS ST', value: fmtMoney(data.vST), w: 0.14 },
-      { label: 'V. IMP. IMPORTAÇÃO', value: '0,00', w: 0.12 },
+      { label: 'V. IMP. IMPORTAÃ‡ÃƒO', value: '0,00', w: 0.12 },
       { label: 'VALOR DO PIS', value: '0,00', w: 0.12 },
       { label: 'VALOR TOTAL DA NF', value: fmtMoney(data.vNF), w: 0.14 },
     ];
@@ -252,7 +252,7 @@ export class DanfeGenerator {
     return y + ROW_H + 2;
   }
 
-  // ─── TRANSPORTE ───
+  // â”€â”€â”€ TRANSPORTE â”€â”€â”€
 
   private drawTransporte(doc: PDFKit.PDFDocument, data: DanfeData, y: number): number {
     doc.font('Helvetica-Bold').fontSize(FONT_LABEL);
@@ -260,15 +260,15 @@ export class DanfeGenerator {
     y += 8;
 
     const freteLabels: Record<string, string> = {
-      '0': '0-Emitente', '1': '1-Destinatário', '2': '2-Terceiros',
-      '3': '3-Próprio Rem.', '4': '4-Próprio Dest.', '9': '9-Sem Frete',
+      '0': '0-Emitente', '1': '1-DestinatÃ¡rio', '2': '2-Terceiros',
+      '3': '3-PrÃ³prio Rem.', '4': '4-PrÃ³prio Dest.', '9': '9-Sem Frete',
     };
 
     doc.rect(MARGIN, y, CONTENT_W, ROW_H).stroke();
-    this.drawField(doc, 'NOME/RAZÃO SOCIAL', data.transpNome, MARGIN, y, CONTENT_W * 0.35, ROW_H);
+    this.drawField(doc, 'NOME/RAZÃƒO SOCIAL', data.transpNome, MARGIN, y, CONTENT_W * 0.35, ROW_H);
     this.drawField(doc, 'FRETE POR CONTA', freteLabels[data.modFrete] || data.modFrete, MARGIN + CONTENT_W * 0.35, y, CONTENT_W * 0.15, ROW_H);
-    this.drawField(doc, 'CÓDIGO ANTT', '', MARGIN + CONTENT_W * 0.5, y, CONTENT_W * 0.1, ROW_H);
-    this.drawField(doc, 'PLACA DO VEÍCULO', '', MARGIN + CONTENT_W * 0.6, y, CONTENT_W * 0.1, ROW_H);
+    this.drawField(doc, 'CÃ“DIGO ANTT', '', MARGIN + CONTENT_W * 0.5, y, CONTENT_W * 0.1, ROW_H);
+    this.drawField(doc, 'PLACA DO VEÃCULO', '', MARGIN + CONTENT_W * 0.6, y, CONTENT_W * 0.1, ROW_H);
     this.drawField(doc, 'UF', '', MARGIN + CONTENT_W * 0.7, y, CONTENT_W * 0.05, ROW_H);
     this.drawField(doc, 'CNPJ/CPF', this.fmtDoc(data.transpCNPJCPF), MARGIN + CONTENT_W * 0.75, y, CONTENT_W * 0.25, ROW_H);
     y += ROW_H;
@@ -277,20 +277,20 @@ export class DanfeGenerator {
     const vol = data.volumes[0] || { qVol: '', esp: '', marca: '', nVol: '', pesoL: '', pesoB: '' };
     doc.rect(MARGIN, y, CONTENT_W, ROW_H).stroke();
     this.drawField(doc, 'QUANTIDADE', vol.qVol, MARGIN, y, CONTENT_W * 0.12, ROW_H);
-    this.drawField(doc, 'ESPÉCIE', vol.esp, MARGIN + CONTENT_W * 0.12, y, CONTENT_W * 0.18, ROW_H);
+    this.drawField(doc, 'ESPÃ‰CIE', vol.esp, MARGIN + CONTENT_W * 0.12, y, CONTENT_W * 0.18, ROW_H);
     this.drawField(doc, 'MARCA', vol.marca, MARGIN + CONTENT_W * 0.3, y, CONTENT_W * 0.18, ROW_H);
-    this.drawField(doc, 'NUMERAÇÃO', vol.nVol, MARGIN + CONTENT_W * 0.48, y, CONTENT_W * 0.15, ROW_H);
+    this.drawField(doc, 'NUMERAÃ‡ÃƒO', vol.nVol, MARGIN + CONTENT_W * 0.48, y, CONTENT_W * 0.15, ROW_H);
     this.drawField(doc, 'PESO BRUTO', vol.pesoB ? fmtMoney(vol.pesoB, 3) : '', MARGIN + CONTENT_W * 0.63, y, CONTENT_W * 0.185, ROW_H);
-    this.drawField(doc, 'PESO LÍQUIDO', vol.pesoL ? fmtMoney(vol.pesoL, 3) : '', MARGIN + CONTENT_W * 0.815, y, CONTENT_W * 0.185, ROW_H);
+    this.drawField(doc, 'PESO LÃQUIDO', vol.pesoL ? fmtMoney(vol.pesoL, 3) : '', MARGIN + CONTENT_W * 0.815, y, CONTENT_W * 0.185, ROW_H);
 
     return y + ROW_H + 2;
   }
 
-  // ─── PRODUTOS HEADER ───
+  // â”€â”€â”€ PRODUTOS HEADER â”€â”€â”€
 
   private drawProdutosHeader(doc: PDFKit.PDFDocument, y: number): number {
     doc.font('Helvetica-Bold').fontSize(FONT_LABEL);
-    doc.text('DADOS DOS PRODUTOS / SERVIÇOS', MARGIN + 2, y);
+    doc.text('DADOS DOS PRODUTOS / SERVIÃ‡OS', MARGIN + 2, y);
     y += 8;
 
     const h = 14;
@@ -299,8 +299,8 @@ export class DanfeGenerator {
     doc.rect(MARGIN, y, CONTENT_W, h).stroke();
 
     const headers = [
-      { text: 'CÓDIGO', w: 0.08 },
-      { text: 'DESCRIÇÃO DO PRODUTO/SERVIÇO', w: 0.26 },
+      { text: 'CÃ“DIGO', w: 0.08 },
+      { text: 'DESCRIÃ‡ÃƒO DO PRODUTO/SERVIÃ‡O', w: 0.26 },
       { text: 'NCM', w: 0.06 },
       { text: 'CST', w: 0.04 },
       { text: 'CFOP', w: 0.04 },
@@ -308,7 +308,7 @@ export class DanfeGenerator {
       { text: 'QTD', w: 0.08 },
       { text: 'V.UNIT', w: 0.08 },
       { text: 'V.TOTAL', w: 0.08 },
-      { text: 'B.CÁLC ICMS', w: 0.07 },
+      { text: 'B.CÃLC ICMS', w: 0.07 },
       { text: 'V.ICMS', w: 0.06 },
       { text: '%ICMS', w: 0.04 },
       { text: 'V.IPI', w: 0.05 },
@@ -326,7 +326,7 @@ export class DanfeGenerator {
     return y + h;
   }
 
-  // ─── PRODUTOS ITENS ───
+  // â”€â”€â”€ PRODUTOS ITENS â”€â”€â”€
 
   private drawProdutos(
     doc: PDFKit.PDFDocument, data: DanfeData, y: number,
@@ -381,7 +381,7 @@ export class DanfeGenerator {
     return y + 2;
   }
 
-  // ─── INFO ADICIONAL ───
+  // â”€â”€â”€ INFO ADICIONAL â”€â”€â”€
 
   private drawInfoAdicional(doc: PDFKit.PDFDocument, data: DanfeData, y: number): number {
     doc.font('Helvetica-Bold').fontSize(FONT_LABEL);
@@ -397,7 +397,7 @@ export class DanfeGenerator {
 
     // Info complementar
     doc.font('Helvetica').fontSize(FONT_LABEL);
-    doc.text('INFORMAÇÕES COMPLEMENTARES', MARGIN + 2, y + 2);
+    doc.text('INFORMAÃ‡Ã•ES COMPLEMENTARES', MARGIN + 2, y + 2);
     doc.fontSize(6);
     const infText = [data.infAdFisco, data.infCpl].filter(Boolean).join('\n');
     doc.text(infText, MARGIN + 2, y + 10, { width: halfW - 4, height: boxH - 12 });
@@ -420,7 +420,7 @@ export class DanfeGenerator {
     return y + boxH;
   }
 
-  // ─── HELPERS ───
+  // â”€â”€â”€ HELPERS â”€â”€â”€
 
   private drawField(
     doc: PDFKit.PDFDocument, label: string, value: string,
@@ -437,7 +437,7 @@ export class DanfeGenerator {
     doc: PDFKit.PDFDocument, data: string,
     x: number, y: number, maxW: number, h: number
   ): void {
-    const bars = generateCode128Bars(data);
+    const bars = gerarBarrasCode128(data);
     if (bars.length === 0) return;
 
     const barW = maxW / bars.length;

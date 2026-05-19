@@ -1,8 +1,8 @@
 /**
  * Code128 barcode generator (subset C for numeric data)
  *
- * Gera representação binária do barcode para renderizar no PDF.
- * Code128-C é otimizado para dados numéricos (pares de dígitos).
+ * Gera representaÃ§Ã£o binÃ¡ria do barcode para renderizar no PDF.
+ * Code128-C Ã© otimizado para dados numÃ©ricos (pares de dÃ­gitos).
  */
 
 // Code128 patterns (bar/space widths)
@@ -40,10 +40,10 @@ const START_C = 105;
 const STOP = 106;
 
 /**
- * Gera barcode Code128-C para a chave de acesso (44 dígitos)
- * Retorna array de barras: true = barra preta, false = espaço
+ * Gera barcode Code128-C para a chave de acesso (44 dÃ­gitos)
+ * Retorna array de barras: true = barra preta, false = espaÃ§o
  */
-export function generateCode128Bars(data: string): boolean[] {
+export function gerarBarrasCode128(data: string): boolean[] {
   // Pad to even length
   const padded = data.length % 2 !== 0 ? '0' + data : data;
 
@@ -82,8 +82,8 @@ export function generateCode128Bars(data: string): boolean[] {
 }
 
 /**
- * Largura total do barcode em módulos (unidades)
+ * Largura total do barcode em mÃ³dulos (unidades)
  */
 export function getCode128Width(data: string): number {
-  return generateCode128Bars(data).length;
+  return gerarBarrasCode128(data).length;
 }

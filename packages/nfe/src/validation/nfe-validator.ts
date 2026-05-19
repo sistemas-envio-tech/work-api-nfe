@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { ValidationError } from '@acbr-node/core';
 import type { NFe } from '../types/nfe.js';
 
-// ─── Schemas Zod ───
+// â”€â”€â”€ Schemas Zod â”€â”€â”€
 //
 // Os schemas espelham as interfaces em ../types/nfe.ts. Para grupos cujo
-// shape varia muito (ICMS/PIS/COFINS dentro de imposto — uma chave por
+// shape varia muito (ICMS/PIS/COFINS dentro de imposto â€” uma chave por
 // CST/CSOSN com formato diferente), usamos z.record(...) ao inves de
 // discriminated union exaustivo. Isso ainda bloqueia tipos errados ("imposto
 // como string", "ICMS como number") sem listar 30+ variantes de CST.
@@ -18,7 +18,7 @@ const enderecoSchema = z.object({
   cMun: z.number().int(),
   xMun: z.string().min(1).max(60),
   UF: z.string().length(2),
-  CEP: z.string().regex(/^\d{8}$/, 'CEP deve ter 8 dígitos'),
+  CEP: z.string().regex(/^\d{8}$/, 'CEP deve ter 8 dÃ­gitos'),
   cPais: z.number().int().optional(),
   xPais: z.string().optional(),
   fone: z.string().optional(),
@@ -35,7 +35,7 @@ const emitenteSchema = z.object({
   IM: z.string().optional(),
   CNAE: z.string().optional(),
   CRT: z.union([z.literal(1), z.literal(2), z.literal(3)]),
-}).refine(d => d.CNPJ || d.CPF, { message: 'CNPJ ou CPF do emitente é obrigatório' });
+}).refine(d => d.CNPJ || d.CPF, { message: 'CNPJ ou CPF do emitente Ã© obrigatÃ³rio' });
 
 const destinatarioSchema = z.object({
   CNPJ: z.string().regex(/^\d{14}$/).optional(),
@@ -57,9 +57,9 @@ const produtoSchema = z.object({
   cProd: z.string().min(1).max(60),
   cEAN: z.string(),
   xProd: z.string().min(1).max(120),
-  NCM: z.string().regex(/^\d{8}$/, 'NCM deve ter 8 dígitos'),
+  NCM: z.string().regex(/^\d{8}$/, 'NCM deve ter 8 dÃ­gitos'),
   CEST: z.string().optional(),
-  CFOP: z.string().regex(/^\d{4}$/, 'CFOP deve ter 4 dígitos'),
+  CFOP: z.string().regex(/^\d{4}$/, 'CFOP deve ter 4 dÃ­gitos'),
   uCom: z.string().min(1).max(6),
   qCom: z.number().min(0),
   vUnCom: z.number().min(0),
@@ -82,7 +82,8 @@ const ideSchema = z.object({
   cUF: z.number().int().min(11).max(53),
   cNF: z.number().int().optional(),
   natOp: z.string().min(1).max(60),
-  mod: z.union([z.literal(55), z.literal(65)]),
+  // NFCe (modelo 65) ainda nao suportado — ver verificacao explicita em validarNFe.
+  mod: z.literal(55),
   serie: z.number().int().min(0).max(999),
   nNF: z.number().int().min(1).max(999999999),
   dhEmi: z.string().min(19),
@@ -232,7 +233,7 @@ const nfeSchema = z.object({
     prod: produtoSchema,
     imposto: impostoSchema,
     infAdProd: z.string().optional(),
-  })).min(1, 'NFe deve ter pelo menos 1 item').max(990, 'NFe pode ter no máximo 990 itens'),
+  })).min(1, 'NFe deve ter pelo menos 1 item').max(990, 'NFe pode ter no mÃ¡ximo 990 itens'),
   total: totalSchema,
   transp: transporteSchema,
   cobr: cobrancaSchema.optional(),
@@ -246,9 +247,24 @@ const nfeSchema = z.object({
 
 /**
  * Valida dados da NFe usando schemas Zod
- * @throws ValidationError com detalhes dos campos inválidos
+ * @throws ValidationError com detalhes dos campos invÃ¡lidos
  */
-export function validateNFe(nfe: unknown): void {
+export function validarNFe(nfe: unknown): void {
+  // Bloqueio explicito de NFCe (modelo 65). A lib ainda nao implementa NFCe
+  // (URLs SEFAZ por UF + DANFCe 80mm). Retornar erro friendly antes do Zod
+  // emitir um generico "Invalid literal value, expected 55".
+  if (
+    typeof nfe === 'object' && nfe !== null &&
+    'ide' in nfe && typeof nfe.ide === 'object' && nfe.ide !== null &&
+    'mod' in nfe.ide && nfe.ide.mod === 65
+  ) {
+    throw new ValidationError(
+      'NFCe (modelo 65) ainda nao suportada. Use modelo 55 (NFe).',
+      'ide.mod',
+      ['NFCe esta no roadmap mas exige URLs SEFAZ por UF e leiaute DANFCe 80mm que ainda nao foram implementados.'],
+    );
+  }
+
   const result = nfeSchema.safeParse(nfe);
 
   if (!result.success) {
@@ -259,7 +275,7 @@ export function validateNFe(nfe: unknown): void {
     const firstField = issues[0]?.path.join('.') || 'unknown';
 
     throw new ValidationError(
-      `Validação NFe falhou: ${details[0]}`,
+      `ValidaÃ§Ã£o NFe falhou: ${details[0]}`,
       firstField,
       details
     );
@@ -267,9 +283,9 @@ export function validateNFe(nfe: unknown): void {
 }
 
 /**
- * Validações de regras de negócio (não cobertas pelo schema)
+ * ValidaÃ§Ãµes de regras de negÃ³cio (nÃ£o cobertas pelo schema)
  */
-export function validateBusinessRules(nfe: NFe): void {
+export function validarRegrasNegocio(nfe: NFe): void {
   const errors: string[] = [];
 
   if (nfe.det && nfe.total?.ICMSTot) {
@@ -284,23 +300,23 @@ export function validateBusinessRules(nfe: NFe): void {
   }
 
   if (nfe.ide?.tpEmis > 1 && !nfe.ide?.xJust) {
-    errors.push('ide.xJust é obrigatório para emissão em contingência');
+    errors.push('ide.xJust Ã© obrigatÃ³rio para emissÃ£o em contingÃªncia');
   }
 
   if (nfe.ide?.xJust && nfe.ide.xJust.length < 15) {
-    errors.push('ide.xJust deve ter no mínimo 15 caracteres');
+    errors.push('ide.xJust deve ter no mÃ­nimo 15 caracteres');
   }
 
   if (nfe.ide?.tpAmb === 2 && nfe.dest?.xNome) {
     const expected = 'NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL';
     if (nfe.dest.xNome !== expected) {
-      errors.push(`Em homologação, dest.xNome deve ser "${expected}"`);
+      errors.push(`Em homologaÃ§Ã£o, dest.xNome deve ser "${expected}"`);
     }
   }
 
   if (errors.length > 0) {
     throw new ValidationError(
-      `Regras de negócio: ${errors[0]}`,
+      `Regras de negÃ³cio: ${errors[0]}`,
       'businessRules',
       errors
     );

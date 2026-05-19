@@ -1,10 +1,10 @@
 /**
- * Sanitiza XML para log — mascara dados sensíveis
+ * Sanitiza XML para log â€” mascara dados sensÃ­veis
  */
-export function sanitizeXmlForLog(xml: string): string {
+export function sanearXmlParaLog(xml: string): string {
   let sanitized = xml;
 
-  // Mascarar conteúdo de tags sensíveis
+  // Mascarar conteÃºdo de tags sensÃ­veis
   const sensitiveTags = [
     'CNPJ', 'CPF', 'IE', 'email', 'fone', 'xNome',
     'xLgr', 'nro', 'CEP',
@@ -26,7 +26,7 @@ export function sanitizeXmlForLog(xml: string): string {
 /**
  * Trunca XML longo para log (max chars)
  */
-export function truncateXml(xml: string, maxLength: number = 2000): string {
+export function truncarXml(xml: string, maxLength: number = 2000): string {
   if (xml.length <= maxLength) return xml;
   return xml.slice(0, maxLength) + `... [truncado, ${xml.length} chars total]`;
 }

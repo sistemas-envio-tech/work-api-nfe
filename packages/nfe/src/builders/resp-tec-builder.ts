@@ -20,12 +20,12 @@ export function buildInfRespTec(
     fone: respTec.fone,
   };
 
-  // Calcular hashCSRT se token e chave disponíveis
+  // Calcular hashCSRT se token e chave disponÃ­veis
   if (respTec.idCSRT && csrtToken && chaveAcesso) {
     obj.idCSRT = String(respTec.idCSRT).padStart(2, '0');
-    obj.hashCSRT = calculateCSRTHash(csrtToken, chaveAcesso);
+    obj.hashCSRT = calcularHashCSRT(csrtToken, chaveAcesso);
   } else if (respTec.idCSRT && respTec.hashCSRT) {
-    // Hash já calculado externamente
+    // Hash jÃ¡ calculado externamente
     obj.idCSRT = String(respTec.idCSRT).padStart(2, '0');
     obj.hashCSRT = respTec.hashCSRT;
   }
@@ -36,10 +36,10 @@ export function buildInfRespTec(
 /**
  * Calcula hash CSRT: Base64( SHA-256( CSRT + chaveAcesso ) )
  *
- * O CSRT (Código de Segurança do Responsável Técnico) é um token
- * fornecido pela SEFAZ ao responsável técnico do software.
+ * O CSRT (CÃ³digo de SeguranÃ§a do ResponsÃ¡vel TÃ©cnico) Ã© um token
+ * fornecido pela SEFAZ ao responsÃ¡vel tÃ©cnico do software.
  */
-export function calculateCSRTHash(csrtToken: string, chaveAcesso: string): string {
+export function calcularHashCSRT(csrtToken: string, chaveAcesso: string): string {
   const data = csrtToken + chaveAcesso;
   return createHash('sha256').update(data).digest('base64');
 }

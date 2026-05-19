@@ -1,8 +1,8 @@
 export { XmlBuilder, type XmlObject } from './xml-builder.js';
 export {
   XmlParser,
-  asXmlNode,
-  asXmlArray,
+  comoNoXml,
+  comoArrayXml,
   type XmlNode,
   type XmlValue,
   type XmlScalar,

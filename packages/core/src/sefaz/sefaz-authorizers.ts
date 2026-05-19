@@ -1,7 +1,7 @@
 /**
- * Mapeamento UF → Autorizador NFe
+ * Mapeamento UF â†’ Autorizador NFe
  *
- * Baseado no ACBrNFeServicos.ini e documentação oficial SEFAZ
+ * Baseado no ACBrNFeServicos.ini e documentaÃ§Ã£o oficial SEFAZ
  * 11 autorizadores diretos + SVAN + SVRS
  */
 
@@ -12,7 +12,7 @@ export type Autorizador =
   | 'SVC-AN' | 'SVC-RS'
   | 'AN';
 
-/** Mapeamento UF → Autorizador em modo normal */
+/** Mapeamento UF â†’ Autorizador em modo normal */
 const UF_AUTORIZADOR: Record<string, Autorizador> = {
   AC: 'SVRS', AL: 'SVRS', AM: 'AM',  AP: 'SVRS',
   BA: 'BA',   CE: 'CE',   DF: 'SVRS', ES: 'SVRS',
@@ -23,7 +23,7 @@ const UF_AUTORIZADOR: Record<string, Autorizador> = {
   SE: 'SVRS', SP: 'SP',   TO: 'SVRS',
 };
 
-/** Mapeamento UF → Autorizador em modo contingência SVC */
+/** Mapeamento UF â†’ Autorizador em modo contingÃªncia SVC */
 const UF_CONTINGENCIA: Record<string, Autorizador> = {
   // SVC-AN: estados autorizados por SP, MG, RS, SVRS
   AC: 'SVC-AN', AL: 'SVC-AN', AP: 'SVC-AN', DF: 'SVC-AN',
@@ -40,24 +40,24 @@ const UF_CONTINGENCIA: Record<string, Autorizador> = {
 /**
  * Retorna o autorizador para a UF
  */
-export function getAutorizador(uf: string, contingencia: boolean = false): Autorizador {
+export function obterAutorizador(uf: string, contingencia: boolean = false): Autorizador {
   const ufUpper = uf.toUpperCase();
 
   if (contingencia) {
     const cont = UF_CONTINGENCIA[ufUpper];
-    if (!cont) throw new Error(`UF sem mapeamento de contingência: ${uf}`);
+    if (!cont) throw new Error(`UF sem mapeamento de contingÃªncia: ${uf}`);
     return cont;
   }
 
   const auth = UF_AUTORIZADOR[ufUpper];
-  if (!auth) throw new Error(`UF inválida: ${uf}`);
+  if (!auth) throw new Error(`UF invÃ¡lida: ${uf}`);
   return auth;
 }
 
 /**
  * Retorna todas as UFs de um autorizador
  */
-export function getUFsByAutorizador(autorizador: Autorizador): string[] {
+export function obterUFsPorAutorizador(autorizador: Autorizador): string[] {
   return Object.entries(UF_AUTORIZADOR)
     .filter(([, auth]) => auth === autorizador)
     .map(([uf]) => uf);

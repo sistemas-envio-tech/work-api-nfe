@@ -3,24 +3,24 @@ import {
   CertificateWatcher,
   SoapClient,
   XmlSigner,
-  getSefazUrl,
-  getDistribuicaoDFeUrl,
+  obterUrlSefaz,
+  obterUrlDistribuicaoDFe,
   NFE_SERVICES,
   type NFeServiceName,
-  getUFCode,
-  withRetry,
+  obterCodigoUF,
+  executarComRetry,
   CircuitBreaker,
-  nowNFe,
+  agoraNFe,
   SefazError,
   SoapError,
-  sanitizeXmlForLog,
-  truncateXml,
+  sanearXmlParaLog,
+  truncarXml,
   type CertificateOptions,
   type Ambiente,
   type LoggerInterface,
   type RetryOptions,
   type CircuitBreakerOptions,
-  createLogger,
+  criarLogger,
 } from '@acbr-node/core';
 import type { NFe, Endereco } from './types/nfe.js';
 import type {
@@ -43,7 +43,7 @@ import {
 } from './parsers/response-parser.js';
 import { parseConsultaCadastro, type RetornoConsultaCadastro } from './parsers/consulta-cadastro-parser.js';
 import { parseDistribuicaoDFe, type RetornoDistribuicaoDFe } from './parsers/distribuicao-parser.js';
-import { validateNFe } from './validation/nfe-validator.js';
+import { validarNFe } from './validation/nfe-validator.js';
 
 export interface NFeClientConfig {
   uf: string;
@@ -55,14 +55,14 @@ export interface NFeClientConfig {
   circuitBreakerOptions?: Partial<CircuitBreakerOptions>;
   timeout?: number;
   contingencia?: boolean;
-  /** Ativar validação Zod antes de gerar XML (padrão: true) */
+  /** Ativar validaÃ§Ã£o Zod antes de gerar XML (padrÃ£o: true) */
   validar?: boolean;
-  /** Logar XML request/response sanitizado (padrão: false) */
+  /** Logar XML request/response sanitizado (padrÃ£o: false) */
   logXml?: boolean;
   /**
-   * Verificar a cadeia TLS do servidor SEFAZ (padrão: true).
-   * Desabilite APENAS em desenvolvimento quando o Node não tem a cadeia
-   * ICP-Brasil no truststore. Em produção, configure NODE_EXTRA_CA_CERTS.
+   * Verificar a cadeia TLS do servidor SEFAZ (padrÃ£o: true).
+   * Desabilite APENAS em desenvolvimento quando o Node nÃ£o tem a cadeia
+   * ICP-Brasil no truststore. Em produÃ§Ã£o, configure NODE_EXTRA_CA_CERTS.
    */
   rejectUnauthorized?: boolean;
 }
@@ -92,10 +92,10 @@ export class NFeClient {
   }
 
   private get cUF(): number {
-    return getUFCode(this.config.uf);
+    return obterCodigoUF(this.config.uf);
   }
 
-  /** Indica se a contingência está ativa */
+  /** Indica se a contingÃªncia estÃ¡ ativa */
   get contingenciaAtiva(): boolean {
     return this._contingenciaAtiva || this.config.contingencia === true;
   }
@@ -104,7 +104,7 @@ export class NFeClient {
     this.config = { validar: true, logXml: false, ...config };
     this.certManager = new CertificateManager();
     this.certWatcher = new CertificateWatcher(undefined, config.logger);
-    this.logger = config.logger ?? createLogger(false);
+    this.logger = config.logger ?? criarLogger(false);
     this.soapClient = new SoapClient({
       timeout: config.timeout ?? 30000,
       rejectUnauthorized: config.rejectUnauthorized ?? true,
@@ -124,7 +124,7 @@ export class NFeClient {
     const certData = await this.certManager.load(this.config.certificado);
     this.logger.info(`Certificado carregado: ${certData.info.subject.CN} (expira em ${certData.daysUntilExpiry} dias)`);
 
-    // Verificar expiração do certificado
+    // Verificar expiraÃ§Ã£o do certificado
     this.certWatcher.check(certData.info);
 
     // Configurar mTLS com PEM extraido (mais estavel que PFX cru no Node 21+,
@@ -139,13 +139,13 @@ export class NFeClient {
     if (!this.initialized) await this.init();
   }
 
-  // ─── Status do Serviço ───
+  // â”€â”€â”€ Status do ServiÃ§o â”€â”€â”€
 
   async statusServico(): Promise<RetornoStatusServico> {
     await this.ensureInit();
 
     const xml = buildConsStatServXml(this.config.ambiente, this.cUF);
-    const url = getSefazUrl(
+    const url = obterUrlSefaz(
       { uf: this.config.uf, ambiente: this.ambienteStr, contingencia: this.config.contingencia },
       'NFeStatusServico4'
     );
@@ -154,14 +154,14 @@ export class NFeClient {
     return parseStatusServico(response);
   }
 
-  // ─── Autorização (Emissão) ───
+  // â”€â”€â”€ AutorizaÃ§Ã£o (EmissÃ£o) â”€â”€â”€
 
   async autorizarNFe(nfe: NFe, sincrono: boolean = true): Promise<RetornoAutorizacao> {
     await this.ensureInit();
 
     // Validar dados se configurado
     if (this.config.validar) {
-      validateNFe(nfe);
+      validarNFe(nfe);
     }
 
     // Montar XML
@@ -181,7 +181,7 @@ export class NFeClient {
     const enviNFeXml = buildEnviNFeXml([signedXml], idLote, sincrono ? 1 : 0);
 
     // Enviar para SEFAZ
-    const url = getSefazUrl(
+    const url = obterUrlSefaz(
       { uf: this.config.uf, ambiente: this.ambienteStr, contingencia: this.config.contingencia },
       'NFeAutorizacao4'
     );
@@ -189,13 +189,13 @@ export class NFeClient {
     const response = await this.sendToSefaz(url, enviNFeXml, 'NFeAutorizacao4');
     const resultado = parseAutorizacao(response);
 
-    // Se assíncrono, fazer polling pelo recibo
+    // Se assÃ­ncrono, fazer polling pelo recibo
     if (!sincrono && resultado.nRec && resultado.cStat === '103') {
       this.logger.info(`Lote recebido. Recibo: ${resultado.nRec}. Consultando...`);
       return this.consultarRecibo(resultado.nRec, signedXml, chaveAcesso);
     }
 
-    // Se síncrono e autorizado, montar nfeProc
+    // Se sÃ­ncrono e autorizado, montar nfeProc
     if (resultado.protNFe && resultado.protNFe.cStat === '100') {
       resultado.xmlAutorizado = this.buildNFeProc(signedXml, resultado.protNFe);
       this.logger.info(`NFe autorizada! Protocolo: ${resultado.protNFe.nProt}`);
@@ -210,7 +210,7 @@ export class NFeClient {
     chaveAcesso: string,
     maxTentativas: number = 10
   ): Promise<RetornoAutorizacao> {
-    const url = getSefazUrl(
+    const url = obterUrlSefaz(
       { uf: this.config.uf, ambiente: this.ambienteStr },
       'NFeRetAutorizacao4'
     );
@@ -261,13 +261,13 @@ export class NFeClient {
     throw new SefazError('105', 'Timeout aguardando processamento do lote');
   }
 
-  // ─── Consulta Protocolo ───
+  // â”€â”€â”€ Consulta Protocolo â”€â”€â”€
 
   async consultarProtocolo(chNFe: string): Promise<RetornoConsultaProtocolo> {
     await this.ensureInit();
 
     const xml = buildConsSitNFeXml(this.config.ambiente, chNFe);
-    const url = getSefazUrl(
+    const url = obterUrlSefaz(
       { uf: this.config.uf, ambiente: this.ambienteStr },
       'NFeConsultaProtocolo4'
     );
@@ -276,7 +276,7 @@ export class NFeClient {
     return parseConsultaProtocolo(response);
   }
 
-  // ─── Inutilização ───
+  // â”€â”€â”€ InutilizaÃ§Ã£o â”€â”€â”€
 
   async inutilizar(params: {
     ano: number;
@@ -305,7 +305,7 @@ export class NFeClient {
       referenceUri: 'infInut',
     });
 
-    const url = getSefazUrl(
+    const url = obterUrlSefaz(
       { uf: this.config.uf, ambiente: this.ambienteStr },
       'NFeInutilizacao4'
     );
@@ -314,7 +314,7 @@ export class NFeClient {
     return parseInutilizacao(response);
   }
 
-  // ─── Cancelamento ───
+  // â”€â”€â”€ Cancelamento â”€â”€â”€
 
   async cancelarNFe(params: {
     chNFe: string;
@@ -328,7 +328,7 @@ export class NFeClient {
       tpAmb: this.config.ambiente,
       CNPJ: this.config.empresa.cnpj,
       chNFe: params.chNFe,
-      dhEvento: nowNFe(this.config.uf),
+      dhEvento: agoraNFe(this.config.uf),
       nProt: params.nProt,
       xJust: params.xJust,
     });
@@ -336,7 +336,7 @@ export class NFeClient {
     return this.enviarEvento(eventoXml);
   }
 
-  // ─── Carta de Correção ───
+  // â”€â”€â”€ Carta de CorreÃ§Ã£o â”€â”€â”€
 
   async cartaCorrecao(params: {
     chNFe: string;
@@ -350,7 +350,7 @@ export class NFeClient {
       tpAmb: this.config.ambiente,
       CNPJ: this.config.empresa.cnpj,
       chNFe: params.chNFe,
-      dhEvento: nowNFe(this.config.uf),
+      dhEvento: agoraNFe(this.config.uf),
       xCorrecao: params.xCorrecao,
       nSeqEvento: params.nSeqEvento,
     });
@@ -358,7 +358,7 @@ export class NFeClient {
     return this.enviarEvento(eventoXml);
   }
 
-  // ─── Consulta Cadastro ───
+  // â”€â”€â”€ Consulta Cadastro â”€â”€â”€
 
   async consultarCadastro(params: {
     UF: string;
@@ -369,7 +369,7 @@ export class NFeClient {
     await this.ensureInit();
 
     const xml = buildConsCadXml(params);
-    const url = getSefazUrl(
+    const url = obterUrlSefaz(
       { uf: params.UF, ambiente: this.ambienteStr },
       'NFeConsultaCadastro4'
     );
@@ -378,12 +378,12 @@ export class NFeClient {
     return parseConsultaCadastro(response);
   }
 
-  // ─── Distribuição DFe ───
+  // â”€â”€â”€ DistribuiÃ§Ã£o DFe â”€â”€â”€
 
   async distribuicaoDFe(params: {
-    /** Último NSU recebido (para paginação) */
+    /** Ãšltimo NSU recebido (para paginaÃ§Ã£o) */
     ultNSU?: string;
-    /** NSU específico */
+    /** NSU especÃ­fico */
     NSU?: string;
     /** Chave de acesso */
     chNFe?: string;
@@ -399,12 +399,12 @@ export class NFeClient {
       chNFe: params.chNFe,
     });
 
-    const url = getDistribuicaoDFeUrl(this.ambienteStr);
+    const url = obterUrlDistribuicaoDFe(this.ambienteStr);
     const response = await this.sendToSefaz(url, xml, 'NFeDistribuicaoDFe');
     return parseDistribuicaoDFe(response);
   }
 
-  // ─── Manifestação do Destinatário ───
+  // â”€â”€â”€ ManifestaÃ§Ã£o do DestinatÃ¡rio â”€â”€â”€
 
   async manifestarDestinatario(params: {
     chNFe: string;
@@ -417,7 +417,7 @@ export class NFeClient {
       tpAmb: this.config.ambiente,
       CNPJ: this.config.empresa.cnpj,
       chNFe: params.chNFe,
-      dhEvento: nowNFe(this.config.uf),
+      dhEvento: agoraNFe(this.config.uf),
       tipo: params.tipo,
       xJust: params.xJust,
     });
@@ -425,7 +425,7 @@ export class NFeClient {
     return this.enviarEvento(eventoXml);
   }
 
-  // ─── Helpers internos ───
+  // â”€â”€â”€ Helpers internos â”€â”€â”€
 
   private async enviarEvento(eventoXml: string): Promise<RetornoEvento> {
     const signedEvento = XmlSigner.sign(eventoXml, {
@@ -435,10 +435,10 @@ export class NFeClient {
     });
 
     const idLote = Date.now().toString().slice(-15);
-    // buildEnvEventoXml já insere os eventos assinados dentro do envelope
+    // buildEnvEventoXml jÃ¡ insere os eventos assinados dentro do envelope
     const finalXml = buildEnvEventoXml([signedEvento], idLote);
 
-    const url = getSefazUrl(
+    const url = obterUrlSefaz(
       { uf: this.config.uf, ambiente: this.ambienteStr },
       'RecepcaoEvento4'
     );
@@ -448,20 +448,20 @@ export class NFeClient {
   }
 
   /**
-   * Ativa contingência manualmente
+   * Ativa contingÃªncia manualmente
    */
   ativarContingencia(): void {
     this._contingenciaAtiva = true;
-    this.logger.warn('Contingência ativada manualmente');
+    this.logger.warn('ContingÃªncia ativada manualmente');
   }
 
   /**
-   * Desativa contingência manualmente
+   * Desativa contingÃªncia manualmente
    */
   desativarContingencia(): void {
     this._contingenciaAtiva = false;
     this.circuitBreaker.reset();
-    this.logger.info('Contingência desativada');
+    this.logger.info('ContingÃªncia desativada');
   }
 
   private async sendToSefaz(
@@ -470,11 +470,11 @@ export class NFeClient {
     serviceName: NFeServiceName
   ): Promise<string> {
     const service = NFE_SERVICES[serviceName];
-    if (!service) throw new Error(`Serviço desconhecido: ${serviceName}`);
+    if (!service) throw new Error(`ServiÃ§o desconhecido: ${serviceName}`);
 
     // Log XML request sanitizado
     if (this.config.logXml) {
-      this.logger.debug(`SOAP Request XML:\n${truncateXml(sanitizeXmlForLog(xml))}`);
+      this.logger.debug(`SOAP Request XML:\n${truncarXml(sanearXmlParaLog(xml))}`);
     }
 
     const sendFn = async () => {
@@ -487,7 +487,7 @@ export class NFeClient {
 
       // Log XML response sanitizado
       if (this.config.logXml) {
-        this.logger.debug(`SOAP Response XML:\n${truncateXml(sanitizeXmlForLog(response.xml))}`);
+        this.logger.debug(`SOAP Response XML:\n${truncarXml(sanearXmlParaLog(response.xml))}`);
       }
 
       return response.xml;
@@ -495,7 +495,7 @@ export class NFeClient {
 
     try {
       if (this.config.retryOptions) {
-        return await withRetry(sendFn, {
+        return await executarComRetry(sendFn, {
           ...this.config.retryOptions,
           retryableCheck: (error) => {
             if (error instanceof SefazError) return error.isRetryable;
@@ -506,12 +506,12 @@ export class NFeClient {
       }
       return await sendFn();
     } catch (error) {
-      // Fallback automático para contingência se SEFAZ principal falhar
+      // Fallback automÃ¡tico para contingÃªncia se SEFAZ principal falhar
       if (!this.contingenciaAtiva && this.shouldFallbackToContingency(error)) {
-        this.logger.warn(`Falha no autorizador principal, tentando contingência SVC...`);
+        this.logger.warn(`Falha no autorizador principal, tentando contingÃªncia SVC...`);
         this._contingenciaAtiva = true;
 
-        const contingencyUrl = getSefazUrl(
+        const contingencyUrl = obterUrlSefaz(
           { uf: this.config.uf, ambiente: this.ambienteStr, contingencia: true },
           serviceName
         );
@@ -532,10 +532,10 @@ export class NFeClient {
   }
 
   private shouldFallbackToContingency(error: unknown): boolean {
-    // Ativar contingência para erros de rede/timeout ou SEFAZ indisponível
+    // Ativar contingÃªncia para erros de rede/timeout ou SEFAZ indisponÃ­vel
     if (error instanceof SoapError) return true;
     if (error instanceof SefazError) {
-      return ['108', '109'].includes(error.cStat); // Serviço paralisado
+      return ['108', '109'].includes(error.cStat); // ServiÃ§o paralisado
     }
     if (error instanceof Error && error.message.includes('Circuit breaker')) return true;
     return false;

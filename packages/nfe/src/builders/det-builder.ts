@@ -31,18 +31,18 @@ function buildProd(prod: Produto): XmlObject {
 
   obj.CFOP = prod.CFOP;
   obj.uCom = prod.uCom;
-  obj.qCom = formatDecimal(prod.qCom, 4);
-  obj.vUnCom = formatDecimal(prod.vUnCom, 10);
-  obj.vProd = formatDecimal(prod.vProd, 2);
+  obj.qCom = formatarDecimal(prod.qCom, 4);
+  obj.vUnCom = formatarDecimal(prod.vUnCom, 10);
+  obj.vProd = formatarDecimal(prod.vProd, 2);
   obj.cEANTrib = prod.cEANTrib;
   obj.uTrib = prod.uTrib;
-  obj.qTrib = formatDecimal(prod.qTrib, 4);
-  obj.vUnTrib = formatDecimal(prod.vUnTrib, 10);
+  obj.qTrib = formatarDecimal(prod.qTrib, 4);
+  obj.vUnTrib = formatarDecimal(prod.vUnTrib, 10);
 
-  if (prod.vFrete !== undefined) obj.vFrete = formatDecimal(prod.vFrete, 2);
-  if (prod.vSeg !== undefined) obj.vSeg = formatDecimal(prod.vSeg, 2);
-  if (prod.vDesc !== undefined) obj.vDesc = formatDecimal(prod.vDesc, 2);
-  if (prod.vOutro !== undefined) obj.vOutro = formatDecimal(prod.vOutro, 2);
+  if (prod.vFrete !== undefined) obj.vFrete = formatarDecimal(prod.vFrete, 2);
+  if (prod.vSeg !== undefined) obj.vSeg = formatarDecimal(prod.vSeg, 2);
+  if (prod.vDesc !== undefined) obj.vDesc = formatarDecimal(prod.vDesc, 2);
+  if (prod.vOutro !== undefined) obj.vOutro = formatarDecimal(prod.vOutro, 2);
 
   obj.indTot = String(prod.indTot);
 
@@ -53,8 +53,8 @@ function buildProd(prod: Produto): XmlObject {
 }
 
 /**
- * Formata número decimal com casas fixas (sem notação científica)
+ * Formata nÃºmero decimal com casas fixas (sem notaÃ§Ã£o cientÃ­fica)
  */
-export function formatDecimal(value: number, decimals: number): string {
+export function formatarDecimal(value: number, decimals: number): string {
   return value.toFixed(decimals);
 }

@@ -1,5 +1,5 @@
 import servicosData from './data/servicos-nfe.json' with { type: 'json' };
-import { getAutorizador } from './sefaz-authorizers.js';
+import { obterAutorizador } from './sefaz-authorizers.js';
 import type { NFeServiceName } from './sefaz-services.js';
 
 export type Ambiente = 'producao' | 'homologacao';
@@ -13,13 +13,13 @@ interface SefazUrlConfig {
 type ServicosRegistry = Record<string, Record<string, Record<string, string>>>;
 const servicos = servicosData as ServicosRegistry;
 
-/** Override manual de URLs (para emergências sem esperar update do pacote) */
+/** Override manual de URLs (para emergÃªncias sem esperar update do pacote) */
 const urlOverrides = new Map<string, string>();
 
 /**
- * Resolve a URL do web service SEFAZ para uma UF/ambiente/serviço
+ * Resolve a URL do web service SEFAZ para uma UF/ambiente/serviÃ§o
  */
-export function getSefazUrl(
+export function obterUrlSefaz(
   config: SefazUrlConfig,
   serviceName: NFeServiceName
 ): string {
@@ -28,29 +28,29 @@ export function getSefazUrl(
   const override = urlOverrides.get(overrideKey);
   if (override) return override;
 
-  const autorizador = getAutorizador(config.uf, config.contingencia);
+  const autorizador = obterAutorizador(config.uf, config.contingencia);
   const ambienteKey = config.ambiente === 'producao' ? 'producao' : 'homologacao';
 
   const autorizadorServicos = servicos[autorizador];
   if (!autorizadorServicos) {
-    throw new Error(`Autorizador não encontrado: ${autorizador}`);
+    throw new Error(`Autorizador nÃ£o encontrado: ${autorizador}`);
   }
 
   const ambienteServicos = autorizadorServicos[ambienteKey];
   if (!ambienteServicos) {
-    throw new Error(`Ambiente não encontrado para ${autorizador}: ${ambienteKey}`);
+    throw new Error(`Ambiente nÃ£o encontrado para ${autorizador}: ${ambienteKey}`);
   }
 
   const url = ambienteServicos[serviceName];
   if (!url) {
-    // Serviços nacionais (AN) como DistribuicaoDFe
+    // ServiÃ§os nacionais (AN) como DistribuicaoDFe
     if (serviceName === 'NFeDistribuicaoDFe') {
       const anServicos = servicos['AN']?.[ambienteKey];
       if (anServicos?.[serviceName]) return anServicos[serviceName];
     }
 
     throw new Error(
-      `Serviço ${serviceName} não disponível para ${autorizador} em ${ambienteKey}`
+      `ServiÃ§o ${serviceName} nÃ£o disponÃ­vel para ${autorizador} em ${ambienteKey}`
     );
   }
 
@@ -58,19 +58,19 @@ export function getSefazUrl(
 }
 
 /**
- * Resolve a URL de Distribuição DFe (sempre serviço AN nacional)
+ * Resolve a URL de DistribuiÃ§Ã£o DFe (sempre serviÃ§o AN nacional)
  */
-export function getDistribuicaoDFeUrl(ambiente: Ambiente): string {
+export function obterUrlDistribuicaoDFe(ambiente: Ambiente): string {
   const ambienteKey = ambiente === 'producao' ? 'producao' : 'homologacao';
   const url = servicos['AN']?.[ambienteKey]?.['NFeDistribuicaoDFe'];
-  if (!url) throw new Error(`URL DistribuicaoDFe não encontrada para ${ambienteKey}`);
+  if (!url) throw new Error(`URL DistribuicaoDFe nÃ£o encontrada para ${ambienteKey}`);
   return url;
 }
 
 /**
- * Define override manual de URL (para emergências)
+ * Define override manual de URL (para emergÃªncias)
  */
-export function setSefazUrlOverride(
+export function definirOverrideUrlSefaz(
   uf: string,
   ambiente: Ambiente,
   serviceName: string,
@@ -82,7 +82,7 @@ export function setSefazUrlOverride(
 /**
  * Remove override manual de URL
  */
-export function clearSefazUrlOverride(
+export function limparOverrideUrlSefaz(
   uf: string,
   ambiente: Ambiente,
   serviceName: string
@@ -91,8 +91,8 @@ export function clearSefazUrlOverride(
 }
 
 /**
- * Lista todos os autorizadores disponíveis
+ * Lista todos os autorizadores disponÃ­veis
  */
-export function listAutorizadores(): string[] {
+export function listarAutorizadores(): string[] {
   return Object.keys(servicos);
 }

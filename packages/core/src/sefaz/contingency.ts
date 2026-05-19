@@ -1,5 +1,5 @@
-import { getAutorizador } from './sefaz-authorizers.js';
-import { getSefazUrl, type Ambiente } from './sefaz-urls.js';
+import { obterAutorizador } from './sefaz-authorizers.js';
+import { obterUrlSefaz, type Ambiente } from './sefaz-urls.js';
 import type { NFeServiceName } from './sefaz-services.js';
 
 export interface ContingencyConfig {
@@ -10,7 +10,7 @@ export interface ContingencyConfig {
 }
 
 /**
- * Tipo de emissão baseado no modo
+ * Tipo de emissÃ£o baseado no modo
  */
 export const TIPO_EMISSAO = {
   NORMAL: 1,
@@ -24,20 +24,20 @@ export const TIPO_EMISSAO = {
 } as const;
 
 /**
- * Determina o tipo de emissão para contingência SVC
+ * Determina o tipo de emissÃ£o para contingÃªncia SVC
  */
-export function getTipoEmissaoContingencia(uf: string): number {
-  const autorizador = getAutorizador(uf, true);
+export function obterTipoEmissaoContingencia(uf: string): number {
+  const autorizador = obterAutorizador(uf, true);
   return autorizador === 'SVC-AN' ? TIPO_EMISSAO.SVC_AN : TIPO_EMISSAO.SVC_RS;
 }
 
 /**
- * Resolve URL de contingência para uma UF/serviço
+ * Resolve URL de contingÃªncia para uma UF/serviÃ§o
  */
-export function getContingencyUrl(
+export function obterUrlContingencia(
   uf: string,
   ambiente: Ambiente,
   serviceName: NFeServiceName
 ): string {
-  return getSefazUrl({ uf, ambiente, contingencia: true }, serviceName);
+  return obterUrlSefaz({ uf, ambiente, contingencia: true }, serviceName);
 }

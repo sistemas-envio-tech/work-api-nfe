@@ -11,12 +11,12 @@ export interface XmlNode {
 export type XmlValue = XmlScalar | XmlNode | XmlNode[] | XmlScalar[] | undefined;
 
 /** Narrowing seguro: retorna o XmlNode se for objeto, senao um objeto vazio. */
-export function asXmlNode(v: XmlValue): XmlNode {
+export function comoNoXml(v: XmlValue): XmlNode {
   return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
 }
 
 /** Narrowing seguro: retorna sempre um array (envolve escalar/objeto em [v], ou [] se undefined). */
-export function asXmlArray<T extends XmlNode = XmlNode>(v: XmlValue): T[] {
+export function comoArrayXml<T extends XmlNode = XmlNode>(v: XmlValue): T[] {
   if (v === undefined || v === null) return [];
   return (Array.isArray(v) ? v : [v]) as T[];
 }
@@ -54,7 +54,7 @@ export class XmlParser {
   }
 
   /**
-   * Extrai o conteúdo do body de um envelope SOAP
+   * Extrai o conteÃºdo do body de um envelope SOAP
    */
   parseSoapResponse(soapXml: string): Record<string, unknown> {
     const parsed = this.parse<Record<string, unknown>>(soapXml);
@@ -74,7 +74,7 @@ export class XmlParser {
   }
 
   /**
-   * Extrai valor de um campo em qualquer nível do objeto
+   * Extrai valor de um campo em qualquer nÃ­vel do objeto
    */
   extractValue(obj: Record<string, unknown>, path: string): unknown {
     const parts = path.split('.');

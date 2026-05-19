@@ -71,6 +71,10 @@ atualizar o baseline.
 
 ## Padroes de codigo
 
+- **Stateless por design** — sem deps de banco de dados, ORM, cache server-side
+  ou job queue. Persistencia e responsabilidade do consumer (ver "Principios
+  arquiteturais" no README). Validado por `pnpm check:stateless` (CI bloqueia
+  PR que adicionar Prisma/TypeORM/Redis/Mongo/etc).
 - TypeScript **strict** em todo lugar. Veja `tsconfig.base.json`.
 - ESM nativo (`"type": "module"`). Imports relativos com `.js` mesmo em arquivos `.ts`.
 - Nao usar `as any`. Para narrowing de XML parseado, use `comoNoXml` / `comoArrayXml`

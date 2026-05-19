@@ -49,5 +49,8 @@ jobs:
       - name: Check authMiddleware ordering (lint:rota-acl)
         run: pnpm check:auth
 
+      - name: Check stateless (sem deps de DB/ORM/cache/queue)
+        run: pnpm check:stateless
+
       - name: Test (vitest workspace)
         run: pnpm test

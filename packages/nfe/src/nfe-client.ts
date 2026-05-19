@@ -6,6 +6,7 @@ import {
   getSefazUrl,
   getDistribuicaoDFeUrl,
   NFE_SERVICES,
+  type NFeServiceName,
   getUFCode,
   withRetry,
   CircuitBreaker,
@@ -466,7 +467,7 @@ export class NFeClient {
   private async sendToSefaz(
     url: string,
     xml: string,
-    serviceName: string
+    serviceName: NFeServiceName
   ): Promise<string> {
     const service = NFE_SERVICES[serviceName];
     if (!service) throw new Error(`Serviço desconhecido: ${serviceName}`);
@@ -512,7 +513,7 @@ export class NFeClient {
 
         const contingencyUrl = getSefazUrl(
           { uf: this.config.uf, ambiente: this.ambienteStr, contingencia: true },
-          serviceName as any
+          serviceName
         );
 
         try {

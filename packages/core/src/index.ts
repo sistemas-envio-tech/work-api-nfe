@@ -14,8 +14,13 @@ export {
   XmlBuilder,
   XmlParser,
   XmlSigner,
+  asXmlNode,
+  asXmlArray,
   type XmlObject,
   type XmlSignOptions,
+  type XmlNode,
+  type XmlValue,
+  type XmlScalar,
 } from './xml/index.js';
 
 // SOAP
@@ -88,4 +93,6 @@ export {
   createLogger,
   noopLogger,
   type LoggerInterface,
+  type LoggerOptions,
+  type LogLevel,
 } from './logging/index.js';

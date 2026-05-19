@@ -1,5 +1,26 @@
 import { XMLParser, type X2jOptions } from 'fast-xml-parser';
 
+/**
+ * Tipos para navegacao em arvore XML parseada por fast-xml-parser.
+ * Substitui `any` em codigo que percorre o resultado do parse.
+ */
+export type XmlScalar = string | number | boolean;
+export interface XmlNode {
+  [key: string]: XmlValue;
+}
+export type XmlValue = XmlScalar | XmlNode | XmlNode[] | XmlScalar[] | undefined;
+
+/** Narrowing seguro: retorna o XmlNode se for objeto, senao um objeto vazio. */
+export function asXmlNode(v: XmlValue): XmlNode {
+  return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+}
+
+/** Narrowing seguro: retorna sempre um array (envolve escalar/objeto em [v], ou [] se undefined). */
+export function asXmlArray<T extends XmlNode = XmlNode>(v: XmlValue): T[] {
+  if (v === undefined || v === null) return [];
+  return (Array.isArray(v) ? v : [v]) as T[];
+}
+
 const DEFAULT_OPTIONS: Partial<X2jOptions> = {
   ignoreAttributes: false,
   attributeNamePrefix: '@_',

@@ -71,14 +71,39 @@ Rotas atuais (em `packages/http-api/src/routes/`):
 - `POST /certificado/validar`
 - `POST /consulta-nfe/...`
 - `POST /manifestacao/...`
-- `POST /autorizacao/enviar` — NF-e modelo 55
+- `POST /autorizacao/enviar` — NF-e (modelo 55) ou NFC-e (modelo 65)
 - `POST /cancelamento/enviar` — evento de cancelamento (tpEvento=110111)
-- `POST /carta-correcao/enviar` — CC-e (tpEvento=110110)
+- `POST /carta-correcao/enviar` — CC-e (tpEvento=110110, NFe apenas)
 - `POST /inutilizacao/enviar` — inutilizacao de faixa de numeracao
-- `POST /danfe/gerar`
+- `POST /danfe/gerar` — auto-detecta NFe (DANFE A4) ou NFCe (DANFCe 80mm)
 
 Todas as rotas mutadoras exigem o header `X-Internal-Token`. Ver
 [`packages/http-api/src/middleware/auth.ts`](packages/http-api/src/middleware/auth.ts).
+
+## NFCe (modelo 65)
+
+NFCe esta implementada com algumas particularidades:
+
+1. **CSC + cscId** sao obrigatorios em `NFeClientPayload.csc` e `payload.cscId`.
+   Sao fornecidos pela SEFAZ-UF ao contribuinte ao habilitar a emissao NFCe.
+2. **URLs SEFAZ NFCe** estao em `packages/core/src/sefaz/data/servicos-nfe.json`
+   (sufixo `-NFCe`). Cobrem 27 UFs via SVRS-NFCe + 11 autorizadores proprios.
+   Se uma UF mover o servico, use `definirOverrideUrlSefaz()` em runtime sem
+   esperar release.
+3. **URLs publicas de consulta** (usadas no QR Code) estao em
+   `packages/core/src/sefaz/nfce-qrcode.ts`. Override via
+   `definirOverrideUrlQrCodeNFCe()`.
+4. **Regras de negocio** validadas em `validarRegrasNegocio`:
+   `idDest=1`, `indFinal=1`, `indPres != 0`, `transp.modFrete=9`, sem
+   `cobr.dup` (NFCe e venda a vista).
+5. **CC-e nao aplicavel**: NFCe so pode ser cancelada (em ate 30 min). Tentar
+   `cartaCorrecao()` numa chave de mod=65 retorna erro claro.
+6. **Inutilizacao**: passe `modelo: 65` em `inutilizar()` para rotear ao
+   endpoint NFCe correto.
+
+Aviso: as URLs de NFCe foram coletadas de documentacao publica SEFAZ. Antes
+de uso em producao, VALIDE contra o portal SEFAZ da UF emitente. Use
+`definirOverrideUrlSefaz()` se necessario.
 
 ## Licenca
 

@@ -1,8 +1,13 @@
 /**
- * Mapeamento UF â†’ Autorizador NFe
+ * Mapeamento UF -> Autorizador NFe / NFCe
  *
- * Baseado no ACBrNFeServicos.ini e documentaÃ§Ã£o oficial SEFAZ
- * 11 autorizadores diretos + SVAN + SVRS
+ * Baseado no ACBrNFeServicos.ini e documentacao oficial SEFAZ.
+ *
+ * NFe (modelo 55): 11 autorizadores diretos + SVAN + SVRS, + contingencias
+ *   SVC-AN / SVC-RS.
+ * NFCe (modelo 65): 12 autorizadores diretos + SVRS-NFCe. NFCe nao possui
+ *   modo de contingencia SVC (em caso de indisponibilidade SEFAZ a NFCe
+ *   pode ser emitida offline com tpEmis=9 e transmitida ate 24h depois).
  */
 
 export type Autorizador =
@@ -10,9 +15,13 @@ export type Autorizador =
   | 'PE' | 'PR' | 'RS' | 'SP'
   | 'SVAN' | 'SVRS'
   | 'SVC-AN' | 'SVC-RS'
-  | 'AN';
+  | 'AN'
+  // ── Autorizadores NFCe ──
+  | 'AM-NFCe' | 'BA-NFCe' | 'CE-NFCe' | 'GO-NFCe' | 'MG-NFCe'
+  | 'MS-NFCe' | 'MT-NFCe' | 'PE-NFCe' | 'PR-NFCe' | 'RS-NFCe'
+  | 'SP-NFCe' | 'SVRS-NFCe';
 
-/** Mapeamento UF â†’ Autorizador em modo normal */
+/** Mapeamento UF -> Autorizador NFe em modo normal */
 const UF_AUTORIZADOR: Record<string, Autorizador> = {
   AC: 'SVRS', AL: 'SVRS', AM: 'AM',  AP: 'SVRS',
   BA: 'BA',   CE: 'CE',   DF: 'SVRS', ES: 'SVRS',
@@ -23,7 +32,7 @@ const UF_AUTORIZADOR: Record<string, Autorizador> = {
   SE: 'SVRS', SP: 'SP',   TO: 'SVRS',
 };
 
-/** Mapeamento UF â†’ Autorizador em modo contingÃªncia SVC */
+/** Mapeamento UF -> Autorizador em modo contingencia SVC (NFe) */
 const UF_CONTINGENCIA: Record<string, Autorizador> = {
   // SVC-AN: estados autorizados por SP, MG, RS, SVRS
   AC: 'SVC-AN', AL: 'SVC-AN', AP: 'SVC-AN', DF: 'SVC-AN',
@@ -38,24 +47,63 @@ const UF_CONTINGENCIA: Record<string, Autorizador> = {
 };
 
 /**
- * Retorna o autorizador para a UF
+ * Mapeamento UF -> Autorizador NFCe.
+ *
+ * UFs com NFCe propria: AM, BA, CE, GO, MG, MS, MT, PE, PR, RS, SP.
+ * UFs que usam SVRS-NFCe: resto (cobre 16 estados, incluindo AC, AL, AP, DF,
+ * ES, MA, PA, PB, PI, RJ, RN, RO, RR, SC, SE, TO).
+ *
+ * IMPORTANTE: este mapeamento eh baseado em documentacao publica SEFAZ.
+ * Caso uma UF migre o servico NFCe, use definirOverrideUrlSefaz() pra
+ * apontar a URL correta em runtime, sem esperar release.
  */
-export function obterAutorizador(uf: string, contingencia: boolean = false): Autorizador {
+const UF_AUTORIZADOR_NFCE: Record<string, Autorizador> = {
+  AC: 'SVRS-NFCe', AL: 'SVRS-NFCe', AM: 'AM-NFCe',   AP: 'SVRS-NFCe',
+  BA: 'BA-NFCe',   CE: 'CE-NFCe',   DF: 'SVRS-NFCe', ES: 'SVRS-NFCe',
+  GO: 'GO-NFCe',   MA: 'SVRS-NFCe', MG: 'MG-NFCe',   MS: 'MS-NFCe',
+  MT: 'MT-NFCe',   PA: 'SVRS-NFCe', PB: 'SVRS-NFCe', PE: 'PE-NFCe',
+  PI: 'SVRS-NFCe', PR: 'PR-NFCe',   RJ: 'SVRS-NFCe', RN: 'SVRS-NFCe',
+  RO: 'SVRS-NFCe', RR: 'SVRS-NFCe', RS: 'RS-NFCe',   SC: 'SVRS-NFCe',
+  SE: 'SVRS-NFCe', SP: 'SP-NFCe',   TO: 'SVRS-NFCe',
+};
+
+/**
+ * Retorna o autorizador para a UF.
+ *
+ * @param uf - Sigla da UF (2 letras)
+ * @param contingencia - Se true, retorna o autorizador SVC de contingencia
+ *   (apenas NFe; NFCe nao tem SVC)
+ * @param modelo - 55 (NFe, default) ou 65 (NFCe)
+ */
+export function obterAutorizador(
+  uf: string,
+  contingencia: boolean = false,
+  modelo: 55 | 65 = 55,
+): Autorizador {
   const ufUpper = uf.toUpperCase();
+
+  if (modelo === 65) {
+    if (contingencia) {
+      throw new Error('NFCe nao possui modo de contingencia SVC. Use tpEmis=9 (offline).');
+    }
+    const auth = UF_AUTORIZADOR_NFCE[ufUpper];
+    if (!auth) throw new Error(`UF invalida para NFCe: ${uf}`);
+    return auth;
+  }
 
   if (contingencia) {
     const cont = UF_CONTINGENCIA[ufUpper];
-    if (!cont) throw new Error(`UF sem mapeamento de contingÃªncia: ${uf}`);
+    if (!cont) throw new Error(`UF sem mapeamento de contingencia: ${uf}`);
     return cont;
   }
 
   const auth = UF_AUTORIZADOR[ufUpper];
-  if (!auth) throw new Error(`UF invÃ¡lida: ${uf}`);
+  if (!auth) throw new Error(`UF invalida: ${uf}`);
   return auth;
 }
 
 /**
- * Retorna todas as UFs de um autorizador
+ * Retorna todas as UFs de um autorizador (NFe, mode normal).
  */
 export function obterUFsPorAutorizador(autorizador: Autorizador): string[] {
   return Object.entries(UF_AUTORIZADOR)

@@ -7,6 +7,9 @@ import {
   obterUrlDistribuicaoDFe,
   NFE_SERVICES,
   type NFeServiceName,
+  type ModeloDocFiscal,
+  servicoParaModelo,
+  gerarInfoQrCodeNFCe,
   obterCodigoUF,
   executarComRetry,
   CircuitBreaker,
@@ -30,6 +33,7 @@ import type {
 import {
   buildNFeXml, buildConsStatServXml, buildConsSitNFeXml,
   buildInutNFeXml, buildConsReciNFeXml, buildEnviNFeXml,
+  buildInfNFeSuplXml,
 } from './builders/nfe-xml-builder.js';
 import { buildCancelamentoXml } from './events/cancelamento.js';
 import { buildCartaCorrecaoXml } from './events/carta-correcao.js';
@@ -75,6 +79,15 @@ export interface EmpresaConfig {
   inscricaoMunicipal?: string;
   crt: 1 | 2 | 3;
   endereco: Endereco;
+  /**
+   * Codigo de Seguranca do Contribuinte (CSC) — token secreto fornecido
+   * pela SEFAZ-UF ao contribuinte para assinar o QR Code da NFCe (modelo 65).
+   * Obrigatorio apenas se a empresa for emitir NFCe. Para NFe (modelo 55)
+   * pode ser omitido.
+   */
+  csc?: string;
+  /** ID do CSC (5-6 digitos, ex.: "000001"). Pareado com csc. */
+  cscId?: string;
 }
 
 export class NFeClient {
@@ -139,18 +152,34 @@ export class NFeClient {
     if (!this.initialized) await this.init();
   }
 
+  /**
+   * Extrai o modelo do documento (55 ou 65) da chave de acesso de 44 digitos.
+   * Posicoes 20-21 contem o modelo. Util para rotear automaticamente NFe x NFCe
+   * em metodos que recebem chNFe.
+   */
+  private obterModeloPorChave(chNFe: string): ModeloDocFiscal {
+    if (chNFe.length !== 44) {
+      throw new SefazError('999', `chNFe deve ter 44 digitos, recebido ${chNFe.length}`);
+    }
+    const mod = chNFe.substring(20, 22);
+    if (mod === '55') return 55;
+    if (mod === '65') return 65;
+    throw new SefazError('999', `Modelo desconhecido na chave: ${mod} (esperado 55 ou 65)`);
+  }
+
   // â”€â”€â”€ Status do ServiÃ§o â”€â”€â”€
 
-  async statusServico(): Promise<RetornoStatusServico> {
+  async statusServico(modelo: ModeloDocFiscal = 55): Promise<RetornoStatusServico> {
     await this.ensureInit();
 
     const xml = buildConsStatServXml(this.config.ambiente, this.cUF);
+    const serv = servicoParaModelo('StatusServico', modelo);
     const url = obterUrlSefaz(
-      { uf: this.config.uf, ambiente: this.ambienteStr, contingencia: this.config.contingencia },
-      'NFeStatusServico4'
+      { uf: this.config.uf, ambiente: this.ambienteStr, contingencia: this.config.contingencia, modelo },
+      serv,
     );
 
-    const response = await this.sendToSefaz(url, xml, 'NFeStatusServico4');
+    const response = await this.sendToSefaz(url, xml, serv);
     return parseStatusServico(response);
   }
 
@@ -164,41 +193,66 @@ export class NFeClient {
       validarNFe(nfe);
     }
 
+    const modelo = nfe.ide.mod as ModeloDocFiscal;
+
+    // Para NFCe (mod=65), CSC + cscId sao obrigatorios para gerar o QR Code.
+    if (modelo === 65 && (!this.config.empresa.csc || !this.config.empresa.cscId)) {
+      throw new SefazError(
+        '999',
+        'NFCe (mod=65) exige csc + cscId na EmpresaConfig para gerar o QR Code.',
+      );
+    }
+
     // Montar XML
     const { xml, chaveAcesso } = buildNFeXml(nfe);
-    this.logger.info(`NFe XML gerado. Chave: ${chaveAcesso}`);
+    this.logger.info(`${modelo === 65 ? 'NFCe' : 'NFe'} XML gerado. Chave: ${chaveAcesso}`);
 
     // Assinar
-    const signedXml = XmlSigner.sign(xml, {
+    let signedXml = XmlSigner.sign(xml, {
       privateKeyPem: this.certManager.getPrivateKey(),
       certificatePem: this.certManager.getCertificate(),
       referenceUri: 'infNFe',
     });
     this.logger.info('XML assinado com sucesso');
 
+    // Para NFCe: appendar <infNFeSupl> com QR Code DEPOIS da Signature.
+    // (Anexo II do Manual NFCe v4.00 — infNFeSupl e irmao de infNFe e Signature.)
+    if (modelo === 65) {
+      const qr = gerarInfoQrCodeNFCe({
+        chaveAcesso,
+        ambiente: this.config.ambiente,
+        uf: this.config.uf,
+        cscId: this.config.empresa.cscId!,
+        csc: this.config.empresa.csc!,
+      });
+      const suplXml = buildInfNFeSuplXml(qr.qrCode, qr.urlChave);
+      signedXml = signedXml.replace('</NFe>', `${suplXml}</NFe>`);
+    }
+
     // Montar envelope enviNFe
     const idLote = Date.now().toString().slice(-15);
     const enviNFeXml = buildEnviNFeXml([signedXml], idLote, sincrono ? 1 : 0);
 
-    // Enviar para SEFAZ
+    // Enviar para SEFAZ (endpoint NFe vs NFCe roteado por modelo)
+    const autorizacaoServ = servicoParaModelo('Autorizacao', modelo);
     const url = obterUrlSefaz(
-      { uf: this.config.uf, ambiente: this.ambienteStr, contingencia: this.config.contingencia },
-      'NFeAutorizacao4'
+      { uf: this.config.uf, ambiente: this.ambienteStr, contingencia: this.config.contingencia, modelo },
+      autorizacaoServ,
     );
 
-    const response = await this.sendToSefaz(url, enviNFeXml, 'NFeAutorizacao4');
+    const response = await this.sendToSefaz(url, enviNFeXml, autorizacaoServ);
     const resultado = parseAutorizacao(response);
 
     // Se assÃ­ncrono, fazer polling pelo recibo
     if (!sincrono && resultado.nRec && resultado.cStat === '103') {
       this.logger.info(`Lote recebido. Recibo: ${resultado.nRec}. Consultando...`);
-      return this.consultarRecibo(resultado.nRec, signedXml, chaveAcesso);
+      return this.consultarRecibo(resultado.nRec, signedXml, chaveAcesso, modelo);
     }
 
     // Se sÃ­ncrono e autorizado, montar nfeProc
     if (resultado.protNFe && resultado.protNFe.cStat === '100') {
       resultado.xmlAutorizado = this.buildNFeProc(signedXml, resultado.protNFe);
-      this.logger.info(`NFe autorizada! Protocolo: ${resultado.protNFe.nProt}`);
+      this.logger.info(`${modelo === 65 ? 'NFCe' : 'NFe'} autorizada! Protocolo: ${resultado.protNFe.nProt}`);
     }
 
     return resultado;
@@ -208,18 +262,20 @@ export class NFeClient {
     nRec: string,
     signedXml: string,
     chaveAcesso: string,
-    maxTentativas: number = 10
+    modelo: ModeloDocFiscal = 55,
+    maxTentativas: number = 10,
   ): Promise<RetornoAutorizacao> {
+    const retServ = servicoParaModelo('RetAutorizacao', modelo);
     const url = obterUrlSefaz(
-      { uf: this.config.uf, ambiente: this.ambienteStr },
-      'NFeRetAutorizacao4'
+      { uf: this.config.uf, ambiente: this.ambienteStr, modelo },
+      retServ,
     );
 
     for (let i = 0; i < maxTentativas; i++) {
       await new Promise(resolve => setTimeout(resolve, 3000 + i * 2000));
 
       const consultaXml = buildConsReciNFeXml(this.config.ambiente, nRec);
-      const response = await this.sendToSefaz(url, consultaXml, 'NFeRetAutorizacao4');
+      const response = await this.sendToSefaz(url, consultaXml, retServ);
       const retConsReci = parseConsultaRecibo(response);
 
       // 105 = Lote em processamento
@@ -266,13 +322,15 @@ export class NFeClient {
   async consultarProtocolo(chNFe: string): Promise<RetornoConsultaProtocolo> {
     await this.ensureInit();
 
+    const modelo = this.obterModeloPorChave(chNFe);
     const xml = buildConsSitNFeXml(this.config.ambiente, chNFe);
+    const serv = servicoParaModelo('ConsultaProtocolo', modelo);
     const url = obterUrlSefaz(
-      { uf: this.config.uf, ambiente: this.ambienteStr },
-      'NFeConsultaProtocolo4'
+      { uf: this.config.uf, ambiente: this.ambienteStr, modelo },
+      serv,
     );
 
-    const response = await this.sendToSefaz(url, xml, 'NFeConsultaProtocolo4');
+    const response = await this.sendToSefaz(url, xml, serv);
     return parseConsultaProtocolo(response);
   }
 
@@ -284,15 +342,18 @@ export class NFeClient {
     nNFIni: number;
     nNFFin: number;
     xJust: string;
+    /** 55 (NFe, default) ou 65 (NFCe). */
+    modelo?: ModeloDocFiscal;
   }): Promise<RetornoInutilizacao> {
     await this.ensureInit();
 
+    const modelo = params.modelo ?? 55;
     const xml = buildInutNFeXml({
       tpAmb: this.config.ambiente,
       cUF: this.cUF,
       ano: params.ano,
       CNPJ: this.config.empresa.cnpj,
-      mod: 55,
+      mod: modelo,
       serie: params.serie,
       nNFIni: params.nNFIni,
       nNFFin: params.nNFFin,
@@ -305,12 +366,13 @@ export class NFeClient {
       referenceUri: 'infInut',
     });
 
+    const serv = servicoParaModelo('Inutilizacao', modelo);
     const url = obterUrlSefaz(
-      { uf: this.config.uf, ambiente: this.ambienteStr },
-      'NFeInutilizacao4'
+      { uf: this.config.uf, ambiente: this.ambienteStr, modelo },
+      serv,
     );
 
-    const response = await this.sendToSefaz(url, signedXml, 'NFeInutilizacao4');
+    const response = await this.sendToSefaz(url, signedXml, serv);
     return parseInutilizacao(response);
   }
 
@@ -323,6 +385,7 @@ export class NFeClient {
   }): Promise<RetornoEvento> {
     await this.ensureInit();
 
+    const modelo = this.obterModeloPorChave(params.chNFe);
     const eventoXml = buildCancelamentoXml({
       cOrgao: this.cUF,
       tpAmb: this.config.ambiente,
@@ -333,7 +396,7 @@ export class NFeClient {
       xJust: params.xJust,
     });
 
-    return this.enviarEvento(eventoXml);
+    return this.enviarEvento(eventoXml, modelo);
   }
 
   // â”€â”€â”€ Carta de CorreÃ§Ã£o â”€â”€â”€
@@ -345,6 +408,14 @@ export class NFeClient {
   }): Promise<RetornoEvento> {
     await this.ensureInit();
 
+    const modelo = this.obterModeloPorChave(params.chNFe);
+    if (modelo === 65) {
+      throw new SefazError(
+        '999',
+        'Carta de Correcao (CC-e) nao se aplica a NFCe (modelo 65). NFCe so pode ser cancelada.',
+      );
+    }
+
     const eventoXml = buildCartaCorrecaoXml({
       cOrgao: this.cUF,
       tpAmb: this.config.ambiente,
@@ -355,7 +426,7 @@ export class NFeClient {
       nSeqEvento: params.nSeqEvento,
     });
 
-    return this.enviarEvento(eventoXml);
+    return this.enviarEvento(eventoXml, modelo);
   }
 
   // â”€â”€â”€ Consulta Cadastro â”€â”€â”€
@@ -427,7 +498,10 @@ export class NFeClient {
 
   // â”€â”€â”€ Helpers internos â”€â”€â”€
 
-  private async enviarEvento(eventoXml: string): Promise<RetornoEvento> {
+  private async enviarEvento(
+    eventoXml: string,
+    modelo: ModeloDocFiscal = 55,
+  ): Promise<RetornoEvento> {
     const signedEvento = XmlSigner.sign(eventoXml, {
       privateKeyPem: this.certManager.getPrivateKey(),
       certificatePem: this.certManager.getCertificate(),
@@ -438,12 +512,13 @@ export class NFeClient {
     // buildEnvEventoXml jÃ¡ insere os eventos assinados dentro do envelope
     const finalXml = buildEnvEventoXml([signedEvento], idLote);
 
+    const serv = servicoParaModelo('RecepcaoEvento', modelo);
     const url = obterUrlSefaz(
-      { uf: this.config.uf, ambiente: this.ambienteStr },
-      'RecepcaoEvento4'
+      { uf: this.config.uf, ambiente: this.ambienteStr, modelo },
+      serv,
     );
 
-    const response = await this.sendToSefaz(url, finalXml, 'RecepcaoEvento4');
+    const response = await this.sendToSefaz(url, finalXml, serv);
     return parseEvento(response);
   }
 

@@ -158,3 +158,19 @@ export function buildConsReciNFeXml(tpAmb: number, nRec: string): string {
     nRec,
   }, NFE_NAMESPACE);
 }
+
+/**
+ * Monta o fragmento <infNFeSupl> que vai DEPOIS da Signature na NFCe.
+ *
+ * Conforme leiaute SEFAZ NFCe v4.00 (Anexo II do Manual da NFCe), o elemento
+ * <infNFeSupl> e irmao de <infNFe> e <Signature>, contendo:
+ *   - <qrCode>: URL completa que vai dentro do QR Code (CDATA pra preservar
+ *      caracteres especiais como | e &)
+ *   - <urlChave>: URL publica de consulta manual pela chave de acesso
+ *
+ * Retorna apenas o fragmento — quem chama insere antes de </NFe> na string
+ * do XML ja assinado.
+ */
+export function buildInfNFeSuplXml(qrCode: string, urlChave: string): string {
+  return `<infNFeSupl><qrCode><![CDATA[${qrCode}]]></qrCode><urlChave>${urlChave}</urlChave></infNFeSupl>`;
+}

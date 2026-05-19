@@ -6,8 +6,10 @@ export {
 
 export {
   NFE_SERVICES,
+  servicoParaModelo,
   type ServiceDefinition,
   type NFeServiceName,
+  type ModeloDocFiscal,
 } from './sefaz-services.js';
 
 export {
@@ -25,3 +27,9 @@ export {
   obterUrlContingencia,
   type ContingencyConfig,
 } from './contingency.js';
+
+export {
+  gerarInfoQrCodeNFCe,
+  definirOverrideUrlQrCodeNFCe,
+  type QrCodeNFCeParams,
+} from './nfce-qrcode.js';

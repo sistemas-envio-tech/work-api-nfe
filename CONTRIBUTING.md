@@ -103,9 +103,21 @@ arquivos staged. Se voce nao tem pnpm no PATH (Windows/Git Bash), use
 
 ## NFCe (modelo 65)
 
-Atualmente nao implementado. O validator Zod aceita `mod: 65` mas as URLs SEFAZ
-NFCe por UF nao estao em `servicos-nfe.json` e o gerador DANFCe 80mm nao existe.
-Sera adicionado em PR dedicado quando houver demanda — ver auditoria interna.
+Suportada. Implementa:
+- 12 autorizadores SEFAZ (proprios das UFs maiores + SVRS-NFCe pra demais)
+- Servicos SOAP NFCe (`NFCeAutorizacao4`, `NFCeStatusServico4`, etc.)
+- Geracao do QR Code conforme Anexo II do Manual NFCe v4.00 (SHA-1 hex do
+  `chNFe + versao + tpAmb + cIdToken + CSC`)
+- DANFCe cupom 80mm com QR Code renderizado, formas de pagamento e dados
+  do consumidor
+- Validacao das regras NFCe (idDest=1, indFinal=1, sem frete, sem duplicatas)
+- Roteamento automatico de endpoint NFe vs NFCe baseado em `nfe.ide.mod`
+
+Para emitir NFCe a empresa precisa do CSC fornecido pela SEFAZ-UF. Passe
+`csc` + `cscId` em `NFeClientPayload`.
+
+As URLs SEFAZ NFCe podem mudar — usar `definirOverrideUrlSefaz()` em runtime
+para emergencias sem release.
 
 ## Reportar problemas
 

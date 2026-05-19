@@ -45,14 +45,19 @@ export {
   limparOverrideUrlSefaz,
   listarAutorizadores,
   NFE_SERVICES,
+  servicoParaModelo,
   TIPO_EMISSAO,
   obterTipoEmissaoContingencia,
   obterUrlContingencia,
+  gerarInfoQrCodeNFCe,
+  definirOverrideUrlQrCodeNFCe,
   type Autorizador,
   type Ambiente,
   type ServiceDefinition,
   type NFeServiceName,
+  type ModeloDocFiscal,
   type ContingencyConfig,
+  type QrCodeNFCeParams,
 } from './sefaz/index.js';
 
 // Utils

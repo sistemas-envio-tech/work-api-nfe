@@ -32,6 +32,14 @@ export interface NFeClientPayload {
    * para os eventos atuais mas seria rejeitado pelo SEFAZ em emissoes reais.
    */
   enderecoEmpresa?: Endereco;
+  /**
+   * Codigo de Seguranca do Contribuinte (CSC). Obrigatorio APENAS para
+   * emissao de NFCe (modelo 65) — necessario para gerar o hash do QR Code.
+   * Para NFe (modelo 55) pode ser omitido.
+   */
+  csc?: string;
+  /** ID do CSC (zero-padded a 6 digitos, ex.: "000001"). */
+  cscId?: string;
   logXml?: boolean;
 }
 
@@ -56,6 +64,8 @@ function buildEmpresa(payload: NFeClientPayload): EmpresaConfig {
       cPais: 1058,
       xPais: 'BRASIL',
     },
+    csc: payload.csc,
+    cscId: payload.cscId,
   };
 }
 

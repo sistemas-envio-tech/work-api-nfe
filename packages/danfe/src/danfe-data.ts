@@ -104,6 +104,11 @@ export interface DanfeData {
   // info adicional
   infAdFisco: string;
   infCpl: string;
+
+  // NFCe (modelo 65) — preenchidos quando o XML traz <infNFeSupl>.
+  // Para NFe (modelo 55) ficam undefined.
+  qrCode?: string;
+  urlChave?: string;
 }
 
 /**
@@ -173,6 +178,15 @@ export function extractDanfeData(xml: string): DanfeData {
   const dups = comoArrayXml(cobr.dup);
   const detPags = comoArrayXml(pag.detPag);
   const vols = comoArrayXml(transp.vol);
+
+  // infNFeSupl: sibling de infNFe em NFCe (mod=65). Carrega o QR Code e a urlChave
+  // que o DANFCe precisa renderizar. O XmlParser tem infNFeSupl em isArray, entao
+  // o valor vem como [{...}] — pegamos o primeiro.
+  const infNFeSuplArr = comoArrayXml(nfe.infNFeSupl);
+  const infNFeSupl = infNFeSuplArr[0] ?? {};
+  const qrCodeRaw = infNFeSupl.qrCode;
+  const qrCodeStr = qrCodeRaw === undefined ? undefined : str(qrCodeRaw) || undefined;
+  const urlChaveStr = infNFeSupl.urlChave === undefined ? undefined : str(infNFeSupl.urlChave) || undefined;
 
   return {
     chaveAcesso: chave,
@@ -254,6 +268,9 @@ export function extractDanfeData(xml: string): DanfeData {
 
     infAdFisco: str(infAdic.infAdFisco),
     infCpl: str(infAdic.infCpl),
+
+    qrCode: qrCodeStr,
+    urlChave: urlChaveStr,
   };
 }
 

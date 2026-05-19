@@ -82,8 +82,7 @@ const ideSchema = z.object({
   cUF: z.number().int().min(11).max(53),
   cNF: z.number().int().optional(),
   natOp: z.string().min(1).max(60),
-  // NFCe (modelo 65) ainda nao suportado — ver verificacao explicita em validarNFe.
-  mod: z.literal(55),
+  mod: z.union([z.literal(55), z.literal(65)]),
   serie: z.number().int().min(0).max(999),
   nNF: z.number().int().min(1).max(999999999),
   dhEmi: z.string().min(19),
@@ -250,21 +249,6 @@ const nfeSchema = z.object({
  * @throws ValidationError com detalhes dos campos invÃ¡lidos
  */
 export function validarNFe(nfe: unknown): void {
-  // Bloqueio explicito de NFCe (modelo 65). A lib ainda nao implementa NFCe
-  // (URLs SEFAZ por UF + DANFCe 80mm). Retornar erro friendly antes do Zod
-  // emitir um generico "Invalid literal value, expected 55".
-  if (
-    typeof nfe === 'object' && nfe !== null &&
-    'ide' in nfe && typeof nfe.ide === 'object' && nfe.ide !== null &&
-    'mod' in nfe.ide && nfe.ide.mod === 65
-  ) {
-    throw new ValidationError(
-      'NFCe (modelo 65) ainda nao suportada. Use modelo 55 (NFe).',
-      'ide.mod',
-      ['NFCe esta no roadmap mas exige URLs SEFAZ por UF e leiaute DANFCe 80mm que ainda nao foram implementados.'],
-    );
-  }
-
   const result = nfeSchema.safeParse(nfe);
 
   if (!result.success) {
@@ -305,6 +289,26 @@ export function validarRegrasNegocio(nfe: NFe): void {
 
   if (nfe.ide?.xJust && nfe.ide.xJust.length < 15) {
     errors.push('ide.xJust deve ter no mÃ­nimo 15 caracteres');
+  }
+
+  // ── Regras especificas de NFCe (modelo 65) ──
+  // Conforme leiaute SEFAZ NFCe v4.00, certas restricoes que nao se aplicam a NFe.
+  if (nfe.ide?.mod === 65) {
+    if (nfe.ide.idDest !== 1) {
+      errors.push('NFCe (mod=65) so permite operacao interna (ide.idDest=1)');
+    }
+    if (nfe.ide.indFinal !== 1) {
+      errors.push('NFCe (mod=65) exige consumidor final (ide.indFinal=1)');
+    }
+    if (nfe.ide.indPres === 0) {
+      errors.push('NFCe (mod=65) nao permite operacao nao-presencial (ide.indPres=0)');
+    }
+    if (nfe.transp?.modFrete !== undefined && nfe.transp.modFrete !== 9) {
+      errors.push('NFCe (mod=65) nao suporta frete — use transp.modFrete=9');
+    }
+    if (nfe.cobr?.dup && nfe.cobr.dup.length > 0) {
+      errors.push('NFCe (mod=65) nao suporta cobranca/duplicatas (venda a vista)');
+    }
   }
 
   if (nfe.ide?.tpAmb === 2 && nfe.dest?.xNome) {

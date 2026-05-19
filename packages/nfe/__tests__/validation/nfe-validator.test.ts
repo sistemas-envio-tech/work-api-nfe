@@ -76,17 +76,13 @@ describe('validarNFe', () => {
     expect(() => validarNFe(nfe)).toThrow(ValidationError);
   });
 
-  it('should reject NFCe (mod=65) with friendly error', () => {
+  it('should accept NFCe (mod=65) when structure is valid', () => {
     const nfe = createMinimalNFe();
     nfe.ide.mod = 65;
-    try {
-      validarNFe(nfe);
-      expect.fail('Should have thrown');
-    } catch (e) {
-      expect(e).toBeInstanceOf(ValidationError);
-      expect((e as ValidationError).message).toContain('NFCe');
-      expect((e as ValidationError).message).toContain('nao suportada');
-    }
+    nfe.ide.idDest = 1;
+    nfe.ide.indFinal = 1;
+    nfe.ide.indPres = 1;
+    expect(() => validarNFe(nfe)).not.toThrow();
   });
 
   it('should include field path in error details', () => {
@@ -120,5 +116,51 @@ describe('validarRegrasNegocio', () => {
     nfe.ide.tpEmis = 6; // SVC-AN
     // No xJust
     expect(() => validarRegrasNegocio(nfe)).toThrow(ValidationError);
+  });
+
+  describe('NFCe (mod=65) business rules', () => {
+    function createNFCe() {
+      const nfe = createMinimalNFe();
+      nfe.ide.mod = 65;
+      nfe.ide.idDest = 1;
+      nfe.ide.indFinal = 1;
+      nfe.ide.indPres = 1;
+      nfe.transp = { modFrete: 9 };
+      return nfe;
+    }
+
+    it('should accept a valid NFCe', () => {
+      expect(() => validarRegrasNegocio(createNFCe())).not.toThrow();
+    });
+
+    it('should reject NFCe with idDest != 1 (apenas operacao interna)', () => {
+      const nfe = createNFCe();
+      nfe.ide.idDest = 2;
+      expect(() => validarRegrasNegocio(nfe)).toThrow(/idDest=1/);
+    });
+
+    it('should reject NFCe sem consumidor final', () => {
+      const nfe = createNFCe();
+      nfe.ide.indFinal = 0;
+      expect(() => validarRegrasNegocio(nfe)).toThrow(/indFinal=1/);
+    });
+
+    it('should reject NFCe com indPres=0 (nao presencial)', () => {
+      const nfe = createNFCe();
+      nfe.ide.indPres = 0;
+      expect(() => validarRegrasNegocio(nfe)).toThrow(/indPres=0/);
+    });
+
+    it('should reject NFCe com frete (modFrete != 9)', () => {
+      const nfe = createNFCe();
+      nfe.transp.modFrete = 0;
+      expect(() => validarRegrasNegocio(nfe)).toThrow(/modFrete=9/);
+    });
+
+    it('should reject NFCe com duplicatas (cobranca a prazo)', () => {
+      const nfe = createNFCe();
+      nfe.cobr = { dup: [{ nDup: '001', dVenc: '2026-06-01', vDup: 100 }] };
+      expect(() => validarRegrasNegocio(nfe)).toThrow(/duplicatas/);
+    });
   });
 });

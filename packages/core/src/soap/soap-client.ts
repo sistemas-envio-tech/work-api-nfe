@@ -55,10 +55,23 @@ export class SoapClient {
    */
   async send(request: SoapRequest, serviceName?: string): Promise<SoapResponse> {
     const wsdlNamespace = serviceName ? WSDL_NAMESPACES[serviceName] : '';
-    // Nome da operacao = ultimo segmento do SOAPAction (ex: "nfeDistDFeInteresse").
-    // SEFAZ NFe 4.00 espera o elemento wrapper da operacao no SOAP body.
-    const operationName = request.action.split('/').pop() || '';
+    // Wrapper da operacao no SOAP body NFe 4.00:
+    //   - NFeDistribuicaoDFe: usa wrapper <nfeDistDFeInteresse>
+    //   - Demais (Autorizacao, StatusServico, ConsultaProtocolo, Inutilizacao,
+    //     RetAutorizacao, RecepcaoEvento, ConsultaCadastro): SEM wrapper,
+    //     apenas <nfeDadosMsg xmlns="..."> direto no Body.
+    //
+    // Bug historico: a versao anterior sempre criava o wrapper, o que fazia
+    // SEFAZ retornar cStat=242 "Mensagem SOAP invalida" em todos os servicos
+    // exceto DistribuicaoDFe. Os WSDLs da Receita Federal pra NFe 4.00 podem
+    // sugerir o wrapper, mas na pratica a SEFAZ recebe so o nfeDadosMsg.
+    const usaWrapper = serviceName === 'NFeDistribuicaoDFe';
+    const operationName = usaWrapper ? (request.action.split('/').pop() || '') : undefined;
     const soapXml = buildSoapEnvelope(request.body, wsdlNamespace || request.action, operationName);
+
+    if (process.env.DEBUG_SOAP_XML === 'true') {
+      console.error('━━━ SOAP REQUEST ━━━\n' + soapXml + '\n━━━━━━━━━━━━━━━━━━━━');
+    }
 
     this.logger?.debug(`SOAP Request to ${request.url}`, { action: request.action });
 

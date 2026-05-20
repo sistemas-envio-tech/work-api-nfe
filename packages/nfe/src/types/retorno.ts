@@ -22,8 +22,14 @@ export interface RetornoAutorizacao {
   protNFe?: ProtocoloNFe;
   /** Número do recibo (modo assíncrono) */
   nRec?: string;
-  /** XML autorizado (nfeProc) */
+  /** XML autorizado (nfeProc) — só presente quando SEFAZ autoriza (cStat=100) */
   xmlAutorizado?: string;
+  /**
+   * XML enviado pra SEFAZ (NFe assinada, dentro do envelope enviNFe).
+   * Sempre presente — autorizado ou rejeitado. Util pro cliente arquivar
+   * e ter referencia em caso de rejeicao (debug do leiaute).
+   */
+  xmlEnviado?: string;
 }
 
 /** Retorno da consulta de protocolo */

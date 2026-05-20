@@ -65,6 +65,9 @@ async function Autorizacao_Enviar(req: Request, res: Response, next: NextFunctio
       // Modo sincrono (autorizado): protocolo + XML nfeProc.
       protNFe: retorno.protNFe,
       xmlAutorizado: retorno.xmlAutorizado,
+      // XML enviado pra SEFAZ (signedXml). Sempre presente — autorizado ou
+      // rejeitado. Cliente pode arquivar pra debug em caso de rejeicao.
+      xmlEnviado: retorno.xmlEnviado,
       // Modo assincrono: recibo (cliente nao chegou a fazer polling automatico,
       // chamador pode consultar depois).
       nRec: retorno.nRec,

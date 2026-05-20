@@ -10,11 +10,19 @@ export interface XmlSignOptions {
 /**
  * Assina XML usando XML Digital Signature (XML-DSig)
  *
- * Padrão NFe:
+ * Padrão NFe 4.00 (TODOS os documentos — NFe, NFCe, eventos, inutilizacao):
  * - Canonicalization: C14N (http://www.w3.org/TR/2001/REC-xml-c14n-20010315)
- * - Signature: RSA-SHA1 (NFe 3.10) ou RSA-SHA256 (NFe 4.00, usado aqui)
- * - Digest: SHA-256
+ * - SignatureMethod: RSA-SHA1 (http://www.w3.org/2000/09/xmldsig#rsa-sha1)
+ * - DigestMethod: SHA1 (http://www.w3.org/2000/09/xmldsig#sha1)
  * - Transform: enveloped-signature + C14N
+ *
+ * **CRITICO**: o schema NFe 4.00 (nfe_v4.00.xsd) tem os algoritmos como
+ * *fixed value constraint* — SHA-256 quebra a validacao XSD com
+ * cStat=225 "Falha no Schema XML do lote de NFe". Apesar de SHA-1 ser
+ * fraco criptograficamente, e o que a Receita exige; mudar isso depende
+ * de Nota Tecnica futura. Incidente real 2026-05-19: 7 tentativas
+ * rejeitadas com SHA-256 antes do diagnostico via validacao local com
+ * libxmljs2 contra o XSD oficial.
  */
 export class XmlSigner {
   /**
@@ -30,7 +38,7 @@ export class XmlSigner {
     const sig = new SignedXml({
       privateKey: privateKeyPem,
       canonicalizationAlgorithm: 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315',
-      signatureAlgorithm: 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256',
+      signatureAlgorithm: 'http://www.w3.org/2000/09/xmldsig#rsa-sha1',
     });
 
     // Referência ao elemento a ser assinado
@@ -40,7 +48,7 @@ export class XmlSigner {
         'http://www.w3.org/2000/09/xmldsig#enveloped-signature',
         'http://www.w3.org/TR/2001/REC-xml-c14n-20010315',
       ],
-      digestAlgorithm: 'http://www.w3.org/2001/04/xmlenc#sha256',
+      digestAlgorithm: 'http://www.w3.org/2000/09/xmldsig#sha1',
     });
 
     // Incluir certificado X509 na assinatura
@@ -52,10 +60,25 @@ export class XmlSigner {
     sig.getKeyInfoContent = () =>
       `<X509Data><X509Certificate>${certBase64}</X509Certificate></X509Data>`;
 
+    // **Importante**: action='after' coloca a <Signature> como IRMA do
+    // elemento referenciado (depois dele). Antes estava 'append', que fazia
+    // a Signature ser FILHA de infNFe — viola o schema NFe 4.00, que exige:
+    //   <NFe>
+    //     <infNFe>...</infNFe>            ← fecha aqui
+    //     <Signature>...</Signature>      ← irma de infNFe
+    //   </NFe>
+    // Com 'append' o XML virava:
+    //   <NFe>
+    //     <infNFe>
+    //       ... campos ...
+    //       <Signature>...</Signature>    ← ERRADO: dentro de infNFe
+    //     </infNFe>
+    //   </NFe>
+    // SEFAZ rejeitava com cStat=225 "Falha no Schema XML do lote de NFe".
     sig.computeSignature(xml, {
       location: {
         reference: `//*[local-name(.)='${referenceUri}']`,
-        action: 'append',
+        action: 'after',
       },
     });
 

@@ -1,5 +1,22 @@
 import { XmlBuilder, type XmlObject } from '@acbr-node/core';
-import { NFE_NAMESPACE, NFE_VERSAO } from '../types/nfe.js';
+import { NFE_NAMESPACE } from '../types/nfe.js';
+
+/**
+ * Versao do schema de Eventos NFe (cancelamento, CCe, manifestacao, EPEC, etc).
+ *
+ * **NAO confundir com `NFE_VERSAO` (4.00) — essa e a versao da NFe normal.**
+ * Eventos tem schema PROPRIO (`leiauteEvento_v1.00.xsd`,
+ * `leiauteEventoCancNFe_v1.00.xsd`, etc.) que exigem `versao="1.00"` nos
+ * atributos `evento/@versao`, `envEvento/@versao`, `verEvento`, e
+ * `detEvento/@versao`. O XSD define `TVerEvento`/`TVerEnvEvento` com
+ * pattern fixo `1\.00`.
+ *
+ * Antes esse builder usava `NFE_VERSAO` (4.00), causando rejeicao SEFAZ
+ * "2254 - Falha na validacao de esquema XML" em todo cancelamento e CCe.
+ * Incidente real 2026-05-19 — diagnostico via validacao local contra
+ * `leiauteEventoCancNFe_v1.00.xsd`.
+ */
+const EVENTO_VERSAO = '1.00';
 
 /**
  * Monta envelope completo envEvento com eventos assinados dentro
@@ -16,7 +33,7 @@ export function buildEnvEventoXml(
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    `<envEvento xmlns="${NFE_NAMESPACE}" versao="${NFE_VERSAO}">`,
+    `<envEvento xmlns="${NFE_NAMESPACE}" versao="${EVENTO_VERSAO}">`,
     `<idLote>${idLote}</idLote>`,
     eventosConcat,
     '</envEvento>',
@@ -41,7 +58,7 @@ export function buildEventoXml(params: {
   const id = `ID${tpEvento}${chNFe}${String(nSeqEvento).padStart(2, '0')}`;
 
   return XmlBuilder.build('evento', {
-    '@versao': NFE_VERSAO,
+    '@versao': EVENTO_VERSAO,
     '@xmlns': NFE_NAMESPACE,
     infEvento: {
       '@Id': id,
@@ -52,9 +69,9 @@ export function buildEventoXml(params: {
       dhEvento,
       tpEvento,
       nSeqEvento: String(nSeqEvento),
-      verEvento: NFE_VERSAO,
+      verEvento: EVENTO_VERSAO,
       detEvento: {
-        '@versao': NFE_VERSAO,
+        '@versao': EVENTO_VERSAO,
         ...detEvento,
       },
     },

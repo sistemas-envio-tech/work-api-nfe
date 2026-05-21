@@ -20,7 +20,7 @@
     "check:auth": "node scripts/check-auth.mjs",
     "check:stateless": "node scripts/check-stateless.mjs",
     "validate": "pnpm typecheck && pnpm lint && pnpm check:asany && pnpm check:tsc && pnpm check:routes && pnpm check:auth && pnpm check:stateless && pnpm test && pnpm build",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "clean": "turbo clean && rm -rf node_modules"
   },
   "devDependencies": {

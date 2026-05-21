@@ -17,7 +17,9 @@ for (const p of candidates) {
 
 export const env = {
   host: process.env.HTTP_API_HOST || '0.0.0.0',
-  port: parseInt(process.env.HTTP_API_PORT || '3002', 10),
+  // Railway (e a maioria das PaaS) injeta a porta via PORT — o healthcheck
+  // bate nessa porta. HTTP_API_PORT fica como override pra dev local.
+  port: parseInt(process.env.PORT || process.env.HTTP_API_PORT || '3002', 10),
   internalToken: process.env.INTERNAL_TOKEN || '',
   logLevel: (process.env.LOG_LEVEL || 'info') as 'debug' | 'info' | 'warn' | 'error',
   logXml: process.env.LOG_XML === 'true',

@@ -505,6 +505,33 @@ export interface InformacaoAdicional {
   obsFisco?: Array<{ xCampo: string; xTexto: string }>;
 }
 
+// ─── NF Referenciada (NFref) ───
+//
+// Grupo opcional dentro de <ide>, usado quando a NFe referencia uma ou
+// mais NFs anteriores. Caso de uso principal: NFe de DEVOLUCAO (finNFe=4)
+// onde a NF nova precisa apontar pra NF da venda original via refNFe.
+//
+// Conforme leiauteNFe_v4.00.xsd, cada <NFref> aceita 1 entre:
+//   - refNFe     : chave 44 dig da NFe referenciada
+//   - refNFeSig  : chave NFe sigilosa (codigo numerico zerado)
+//   - refCTe     : chave CTe 44 dig
+//   - refNF      : referencia NF1 modelo 1 (legacy — campos cUF+AAMM+CNPJ+mod+serie+nNF)
+//   - refNFP     : referencia NF de produtor rural
+//   - refECF     : referencia cupom fiscal ECF
+//
+// Esta interface cobre os 3 modos por chave (refNFe, refNFeSig, refCTe).
+// Os modos legacy (refNF/refNFP/refECF) podem ser adicionados quando o
+// dominio exigir — hoje a maioria das devolucoes referencia NFe (4).
+
+export interface NFref {
+  /** Chave 44 dig da NFe original (caso comum em devolucao). */
+  refNFe?: string;
+  /** Chave NFe sigilosa (cNF zerado). */
+  refNFeSig?: string;
+  /** Chave 44 dig de CTe. */
+  refCTe?: string;
+}
+
 // ─── Responsável Técnico ───
 
 export interface ResponsavelTecnico {
@@ -529,4 +556,7 @@ export interface NFe {
   pag: Pagamento;
   infAdic?: InformacaoAdicional;
   infRespTec?: ResponsavelTecnico;
+  /** NFs referenciadas — obrigatorio em devolucao (finNFe=4) com
+   *  pelo menos 1 refNFe apontando pra NF da venda original. */
+  nfRef?: NFref[];
 }

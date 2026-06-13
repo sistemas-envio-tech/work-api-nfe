@@ -39,7 +39,7 @@ export function buildNFeXml(nfe: NFe): { xml: string; chaveAcesso: string } {
   const infNFe: XmlObject = {
     '@versao': NFE_VERSAO,
     '@Id': `NFe${chaveAcesso}`,
-    ide: buildIde({ ...nfe.ide, cNF, cDV }),
+    ide: buildIde({ ...nfe.ide, cNF, cDV }, nfe.nfRef),
     emit: buildEmit(nfe.emit),
   };
 

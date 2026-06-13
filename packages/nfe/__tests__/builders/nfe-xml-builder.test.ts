@@ -207,6 +207,34 @@ describe('buildNFeXml', () => {
     expect(xml).toContain('<NCM>84715010</NCM>');
     expect(xml).toContain('<CFOP>5102</CFOP>');
   });
+
+  it('should include NFref grouped under ide for devolucao (finNFe=4)', () => {
+    const nfe = createSampleNFe();
+    nfe.ide.finNFe = FinalidadeNFe.DEVOLUCAO;
+    nfe.nfRef = [
+      { refNFe: '35200512345678901234550010000000011000000016' },
+    ];
+    const { xml } = buildNFeXml(nfe);
+
+    expect(xml).toContain('<finNFe>4</finNFe>');
+    expect(xml).toContain(
+      '<NFref><refNFe>35200512345678901234550010000000011000000016</refNFe></NFref>',
+    );
+  });
+
+  it('should serialize multiple NFref entries when given an array', () => {
+    const nfe = createSampleNFe();
+    nfe.ide.finNFe = FinalidadeNFe.DEVOLUCAO;
+    nfe.nfRef = [
+      { refNFe: '35200512345678901234550010000000011000000016' },
+      { refNFe: '35200512345678901234550010000000021000000023' },
+    ];
+    const { xml } = buildNFeXml(nfe);
+
+    // 2 tags <NFref>
+    const matches = xml.match(/<NFref>/g) || [];
+    expect(matches.length).toBe(2);
+  });
 });
 
 describe('buildConsStatServXml', () => {

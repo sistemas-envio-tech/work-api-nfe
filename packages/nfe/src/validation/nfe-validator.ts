@@ -223,6 +223,17 @@ const infRespTecSchema = z.object({
   hashCSRT: z.string().optional(),
 });
 
+// NFref — exatamente 1 de refNFe/refNFeSig/refCTe deve estar set.
+// Validacao runtime no buildNFref tambem; aqui a Zod garante schema.
+const nfRefSchema = z.object({
+  refNFe: z.string().regex(/^\d{44}$/, 'refNFe deve ter 44 digitos').optional(),
+  refNFeSig: z.string().regex(/^\d{44}$/, 'refNFeSig deve ter 44 digitos').optional(),
+  refCTe: z.string().regex(/^\d{44}$/, 'refCTe deve ter 44 digitos').optional(),
+}).refine(
+  (v) => (v.refNFe ? 1 : 0) + (v.refNFeSig ? 1 : 0) + (v.refCTe ? 1 : 0) === 1,
+  { message: 'NFref deve ter EXATAMENTE 1 referencia (refNFe, refNFeSig ou refCTe).' },
+);
+
 const nfeSchema = z.object({
   ide: ideSchema,
   emit: emitenteSchema,
@@ -242,6 +253,17 @@ const nfeSchema = z.object({
   }),
   infAdic: infAdicSchema.optional(),
   infRespTec: infRespTecSchema.optional(),
+  nfRef: z.array(nfRefSchema).max(999, 'NFref aceita ate 999 entradas').optional(),
+}).superRefine((nfe, ctx) => {
+  // Regra de negocio: finNFe=4 (DEVOLUCAO) EXIGE pelo menos 1 NFref.
+  // Backend SEFAZ rejeita NFe de devolucao sem refNFe.
+  if (nfe.ide?.finNFe === 4 && (!nfe.nfRef || nfe.nfRef.length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'finNFe=4 (DEVOLUCAO) exige pelo menos 1 nfRef apontando pra NF original.',
+      path: ['nfRef'],
+    });
+  }
 });
 
 /**

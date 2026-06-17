@@ -136,8 +136,11 @@ export interface ICMS10 {
   vBCST: number;
   pICMSST: number;
   vICMSST: number;
+  /** FCP proprio — base + aliquota + valor. ICMS10 exige base explicita. */
+  vBCFCP?: number;
   pFCP?: number;
   vFCP?: number;
+  /** FCP-ST (substituicao tributaria). */
   vBCFCPST?: number;
   pFCPST?: number;
   vFCPST?: number;
@@ -153,6 +156,8 @@ export interface ICMS20 {
   vICMS: number;
   vICMSDeson?: number;
   motDesICMS?: number;
+  /** FCP proprio — base + aliquota + valor. ICMS20 exige base explicita. */
+  vBCFCP?: number;
   pFCP?: number;
   vFCP?: number;
 }
@@ -198,6 +203,10 @@ export interface ICMS60 {
   pST?: number;
   vICMSSTDeson?: number;
   motDesICMSST?: number;
+  /** FCP retido por ST (anterior). */
+  vBCFCPSTRet?: number;
+  pFCPSTRet?: number;
+  vFCPSTRet?: number;
 }
 
 export interface ICMS70 {
@@ -215,6 +224,14 @@ export interface ICMS70 {
   vICMSST: number;
   vICMSDeson?: number;
   motDesICMS?: number;
+  /** FCP proprio. */
+  vBCFCP?: number;
+  pFCP?: number;
+  vFCP?: number;
+  /** FCP-ST. */
+  vBCFCPST?: number;
+  pFCPST?: number;
+  vFCPST?: number;
 }
 
 export interface ICMS90 {
@@ -232,6 +249,14 @@ export interface ICMS90 {
   vICMSST?: number;
   vICMSDeson?: number;
   motDesICMS?: number;
+  /** FCP proprio. */
+  vBCFCP?: number;
+  pFCP?: number;
+  vFCP?: number;
+  /** FCP-ST. */
+  vBCFCPST?: number;
+  pFCPST?: number;
+  vFCPST?: number;
 }
 
 /** ICMS Simples Nacional */

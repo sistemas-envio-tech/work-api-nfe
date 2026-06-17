@@ -105,8 +105,9 @@ const ideSchema = z.object({
 });
 
 // Imposto: ICMS/PIS/COFINS sao dicts indexados por CST/CSOSN/etc. O shape
-// interno varia (ICMS00 vs ICMS10 vs ICMSSN101 sao diferentes), entao usamos
-// record + unknown. Bloqueia tipos primitivos errados sem listar cada CST.
+// interno varia (ICMS00 vs ICMS10 vs ICMSSN101 sao diferentes). Mantemos
+// record/unknown na estrutura; validacao por CST acontece via
+// superRefine no nfeSchema (vide validarBlocoIcms abaixo).
 const impostoSchema = z.object({
   vTotTrib: z.number().optional(),
   ICMS: z.record(z.string(), z.unknown()).optional(),
@@ -118,6 +119,104 @@ const impostoSchema = z.object({
   PIS: z.record(z.string(), z.unknown()).optional(),
   COFINS: z.record(z.string(), z.unknown()).optional(),
 });
+
+// ============================================================
+// VALIDACAO POR CST/CSOSN — campos obrigatorios por bloco.
+//
+// XSD da NFe v4.00 define campos obrigatorios diferentes por CST. Ex:
+//   - ICMS00: vBC + pICMS + vICMS
+//   - ICMS10: tudo de 00 + modBCST + vBCST + pICMSST + vICMSST
+//   - ICMS20: pRedBC + vBC + pICMS + vICMS
+//   - ICMS30: modBCST + vBCST + pICMSST + vICMSST (sem ICMS proprio)
+//   - ICMS40/41/50: so orig + CST (isencao/nao trib/suspensao)
+//   - ICMS51: vBC + pICMS + vICMSOp + vICMSDif + vICMS
+//   - ICMS60: vBCSTRet + vICMSSTRet (ST ja recolhido na origem)
+//   - ICMS70: redBC do 20 + ST do 10
+//   - ICMS90: vBC + pICMS + vICMS (generico — outras operacoes)
+//
+// Esse helper recebe o objeto `ICMS` do imposto e retorna erros se faltar
+// algum campo obrigatorio do CST presente. Roda no superRefine do det
+// loop, pra cada item ter erro com path correto.
+// ============================================================
+type IssueAdder = (path: (string | number)[], message: string) => void;
+
+function ehNumeroPreenchido(v: unknown): boolean {
+  if (v == null) return false;
+  if (typeof v === 'number') return Number.isFinite(v);
+  if (typeof v === 'string') {
+    const s = v.trim();
+    if (!s) return false;
+    return !isNaN(Number(s));
+  }
+  return false;
+}
+
+const CAMPOS_OBRIGATORIOS_POR_CST: Record<string, readonly string[]> = {
+  ICMS00: ['orig', 'CST', 'modBC', 'vBC', 'pICMS', 'vICMS'],
+  ICMS10: [
+    'orig', 'CST', 'modBC', 'vBC', 'pICMS', 'vICMS',
+    'modBCST', 'vBCST', 'pICMSST', 'vICMSST',
+  ],
+  ICMS20: ['orig', 'CST', 'modBC', 'pRedBC', 'vBC', 'pICMS', 'vICMS'],
+  ICMS30: ['orig', 'CST', 'modBCST', 'vBCST', 'pICMSST', 'vICMSST'],
+  ICMS40: ['orig', 'CST'], // 40/41/50 idem
+  ICMS51: ['orig', 'CST', 'modBC', 'vBC', 'pICMS', 'vICMSOp', 'vICMSDif', 'vICMS'],
+  ICMS60: ['orig', 'CST', 'vBCSTRet', 'vICMSSTRet'],
+  ICMS70: [
+    'orig', 'CST', 'modBC', 'pRedBC', 'vBC', 'pICMS', 'vICMS',
+    'modBCST', 'vBCST', 'pICMSST', 'vICMSST',
+  ],
+  ICMS90: ['orig', 'CST', 'modBC', 'vBC', 'pICMS', 'vICMS'],
+  // CSOSN — Simples Nacional. Validacao mais frouxa (esses campos sao
+  // bastante variaveis por cenario), mas exige pelo menos orig + CSOSN.
+  ICMSSN101: ['orig', 'CSOSN', 'pCredSN', 'vCredICMSSN'],
+  ICMSSN102: ['orig', 'CSOSN'],
+  ICMSSN103: ['orig', 'CSOSN'],
+  ICMSSN201: ['orig', 'CSOSN', 'modBCST', 'vBCST', 'pICMSST', 'vICMSST'],
+  ICMSSN202: ['orig', 'CSOSN', 'modBCST', 'vBCST', 'pICMSST', 'vICMSST'],
+  ICMSSN203: ['orig', 'CSOSN', 'modBCST', 'vBCST', 'pICMSST', 'vICMSST'],
+  ICMSSN300: ['orig', 'CSOSN'],
+  ICMSSN400: ['orig', 'CSOSN'],
+  ICMSSN500: ['orig', 'CSOSN', 'vBCSTRet', 'vICMSSTRet'],
+  ICMSSN900: ['orig', 'CSOSN'],
+};
+
+function validarBlocoIcms(
+  icms: unknown,
+  basePath: (string | number)[],
+  addIssue: IssueAdder,
+): void {
+  if (!icms || typeof icms !== 'object') return;
+  const obj = icms as Record<string, unknown>;
+  // ICMS40 do builder tambem aceita CST 41 e 50 — mesma estrutura.
+  const alias: Record<string, string> = { ICMS41: 'ICMS40', ICMS50: 'ICMS40' };
+  for (const chave of Object.keys(obj)) {
+    const tipo = alias[chave] || chave;
+    const requisitos = CAMPOS_OBRIGATORIOS_POR_CST[tipo];
+    if (!requisitos) continue; // CST nao reconhecido — passa
+    const bloco = obj[chave];
+    if (!bloco || typeof bloco !== 'object') {
+      addIssue([...basePath, chave], `Bloco ${chave} deve ser objeto`);
+      continue;
+    }
+    const blocoObj = bloco as Record<string, unknown>;
+    for (const campo of requisitos) {
+      const valor = blocoObj[campo];
+      // orig/CST/CSOSN/modBC: aceita 0 como valido (origem 0=Nacional,
+      // CST '00', modBC 0..3). Pra esses, basta nao-undefined.
+      if (campo === 'orig' || campo === 'CST' || campo === 'CSOSN' || campo === 'modBC' || campo === 'modBCST') {
+        if (valor === undefined || valor === null || valor === '') {
+          addIssue([...basePath, chave, campo], `${chave}.${campo} obrigatorio`);
+        }
+        continue;
+      }
+      // Demais: precisa ser numero preenchido (string numerica conta).
+      if (!ehNumeroPreenchido(valor)) {
+        addIssue([...basePath, chave, campo], `${chave}.${campo} obrigatorio (numero)`);
+      }
+    }
+  }
+}
 
 const icmsTotSchema = z.object({
   vBC: z.number().optional(),
@@ -262,6 +361,25 @@ const nfeSchema = z.object({
       code: z.ZodIssueCode.custom,
       message: 'finNFe=4 (DEVOLUCAO) exige pelo menos 1 nfRef apontando pra NF original.',
       path: ['nfRef'],
+    });
+  }
+
+  // Validacao por CST/CSOSN — campos obrigatorios em cada bloco ICMS.
+  // Detecta cedo erros que ate hoje passavam o Zod e so quebravam na
+  // SEFAZ (ex: ICMS10 sem vBCST, ICMS20 sem pRedBC). Vide a tabela
+  // CAMPOS_OBRIGATORIOS_POR_CST acima.
+  if (Array.isArray(nfe.det)) {
+    nfe.det.forEach((item, idx) => {
+      const icms = item?.imposto?.ICMS;
+      if (icms) {
+        validarBlocoIcms(icms, ['det', idx, 'imposto', 'ICMS'], (path, message) => {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message,
+            path,
+          });
+        });
+      }
     });
   }
 });

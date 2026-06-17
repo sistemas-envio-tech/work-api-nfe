@@ -58,9 +58,23 @@ function buildICMSFields(icms: ICMSType): XmlObject {
   if ('pICMSST' in icms && icms.pICMSST !== undefined) obj.pICMSST = formatarDecimal(icms.pICMSST, 4);
   if ('vICMSST' in icms && icms.vICMSST !== undefined) obj.vICMSST = formatarDecimal(icms.vICMSST, 2);
 
-  // FCP
+  // FCP (Fundo de Combate a Pobreza) — Regime Normal. ICMS00 nao tem
+  // vBCFCP no XSD (base implicita = vBC); ICMS10/20/70/90 exigem a base
+  // separada. ICMS10/70/90 tambem podem ter FCP-ST (vBCFCPST/pFCPST/
+  // vFCPST). Builder e generico — caller controla quais campos enviar.
+  if ('vBCFCP' in icms && icms.vBCFCP !== undefined) obj.vBCFCP = formatarDecimal(icms.vBCFCP, 2);
   if ('pFCP' in icms && icms.pFCP !== undefined) obj.pFCP = formatarDecimal(icms.pFCP, 4);
   if ('vFCP' in icms && icms.vFCP !== undefined) obj.vFCP = formatarDecimal(icms.vFCP, 2);
+
+  // FCP-ST (Fundo de Combate a Pobreza retido por Substituicao Tributaria)
+  if ('vBCFCPST' in icms && icms.vBCFCPST !== undefined) obj.vBCFCPST = formatarDecimal(icms.vBCFCPST, 2);
+  if ('pFCPST' in icms && icms.pFCPST !== undefined) obj.pFCPST = formatarDecimal(icms.pFCPST, 4);
+  if ('vFCPST' in icms && icms.vFCPST !== undefined) obj.vFCPST = formatarDecimal(icms.vFCPST, 2);
+
+  // FCP-ST Retido (CST 60 — quando ST foi recolhido anteriormente)
+  if ('vBCFCPSTRet' in icms && icms.vBCFCPSTRet !== undefined) obj.vBCFCPSTRet = formatarDecimal(icms.vBCFCPSTRet, 2);
+  if ('pFCPSTRet' in icms && icms.pFCPSTRet !== undefined) obj.pFCPSTRet = formatarDecimal(icms.pFCPSTRet, 4);
+  if ('vFCPSTRet' in icms && icms.vFCPSTRet !== undefined) obj.vFCPSTRet = formatarDecimal(icms.vFCPSTRet, 2);
 
   // Desoneração
   if ('vICMSDeson' in icms && icms.vICMSDeson !== undefined) obj.vICMSDeson = formatarDecimal(icms.vICMSDeson, 2);

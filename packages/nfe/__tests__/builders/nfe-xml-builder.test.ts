@@ -235,6 +235,135 @@ describe('buildNFeXml', () => {
     const matches = xml.match(/<NFref>/g) || [];
     expect(matches.length).toBe(2);
   });
+
+  // ============================================================
+  // CSTs Regime Normal — geracao de XML
+  // ============================================================
+  describe('CSTs do Regime Normal — geracao de XML', () => {
+    function buildWithIcms(blocoIcms: Record<string, unknown>) {
+      const nfe = createSampleNFe();
+      nfe.det[0].imposto.ICMS = blocoIcms;
+      return buildNFeXml(nfe);
+    }
+
+    it('ICMS10 (tributada + ST) gera todos os campos no XML', () => {
+      const { xml } = buildWithIcms({
+        ICMS10: {
+          orig: 0, CST: '10', modBC: 3, vBC: 100.00, pICMS: 18.0000, vICMS: 18.00,
+          modBCST: 4, vBCST: 150.00, pICMSST: 18.0000, vICMSST: 27.00,
+        },
+      });
+      expect(xml).toContain('<ICMS10>');
+      expect(xml).toContain('<CST>10</CST>');
+      expect(xml).toContain('<vBC>100');
+      expect(xml).toContain('<vBCST>150');
+      expect(xml).toContain('<vICMSST>27');
+    });
+
+    it('ICMS20 (reducao de base) gera pRedBC', () => {
+      const { xml } = buildWithIcms({
+        ICMS20: {
+          orig: 0, CST: '20', modBC: 3, pRedBC: 30.0000,
+          vBC: 70.00, pICMS: 18.0000, vICMS: 12.60,
+        },
+      });
+      expect(xml).toContain('<ICMS20>');
+      expect(xml).toContain('<pRedBC>30');
+    });
+
+    it('ICMS40 (isenta) gera so orig + CST', () => {
+      const { xml } = buildWithIcms({
+        ICMS40: { orig: 0, CST: '40' },
+      });
+      expect(xml).toContain('<ICMS40>');
+      expect(xml).toContain('<CST>40</CST>');
+      // Bloco ICMS40 nao deve ter pICMS dentro (a NFe inteira pode ter
+      // vBC=0 no Total, entao limitamos a checagem ao trecho do ICMS40).
+      const trecho = xml.match(/<ICMS40>[\s\S]*?<\/ICMS40>/)?.[0] ?? '';
+      expect(trecho).not.toMatch(/<vBC>/);
+      expect(trecho).not.toMatch(/<pICMS>/);
+    });
+
+    it('ICMS41 (nao tributada) usa o mesmo bloco ICMS40 (XSD)', () => {
+      const { xml } = buildWithIcms({
+        ICMS40: { orig: 0, CST: '41' },
+      });
+      expect(xml).toContain('<CST>41</CST>');
+    });
+
+    it('ICMS51 (diferimento) gera vICMSDif e vICMS=0', () => {
+      const { xml } = buildWithIcms({
+        ICMS51: {
+          orig: 0, CST: '51', modBC: 3, vBC: 100.00, pICMS: 18.0000,
+          vICMSOp: 18.00, vICMSDif: 18.00, vICMS: 0.00,
+        },
+      });
+      expect(xml).toContain('<ICMS51>');
+      expect(xml).toContain('<vICMSDif>18');
+      expect(xml).toMatch(/<vICMS>0/);
+    });
+
+    it('ICMS60 (ST anterior) gera vBCSTRet + vICMSSTRet', () => {
+      const { xml } = buildWithIcms({
+        ICMS60: { orig: 0, CST: '60', vBCSTRet: 150.00, vICMSSTRet: 27.00 },
+      });
+      expect(xml).toContain('<ICMS60>');
+      expect(xml).toContain('<vBCSTRet>150');
+      expect(xml).toContain('<vICMSSTRet>27');
+    });
+
+    it('ICMS70 (reducao + ST) gera campos das duas', () => {
+      const { xml } = buildWithIcms({
+        ICMS70: {
+          orig: 0, CST: '70', modBC: 3, pRedBC: 30.0000,
+          vBC: 70.00, pICMS: 18.0000, vICMS: 12.60,
+          modBCST: 4, vBCST: 150.00, pICMSST: 18.0000, vICMSST: 27.00,
+        },
+      });
+      expect(xml).toContain('<ICMS70>');
+      expect(xml).toContain('<pRedBC>30');
+      expect(xml).toContain('<vBCST>150');
+    });
+
+    it('ICMS90 (generico) gera vBC + pICMS + vICMS', () => {
+      const { xml } = buildWithIcms({
+        ICMS90: {
+          orig: 0, CST: '90', modBC: 3,
+          vBC: 100.00, pICMS: 18.0000, vICMS: 18.00,
+        },
+      });
+      expect(xml).toContain('<ICMS90>');
+      expect(xml).toContain('<vBC>100');
+    });
+
+    it('FCP em ICMS00 gera pFCP + vFCP (sem vBCFCP)', () => {
+      const { xml } = buildWithIcms({
+        ICMS00: {
+          orig: 0, CST: '00', modBC: 3, vBC: 100, pICMS: 18, vICMS: 18,
+          pFCP: 2.0000, vFCP: 2.00,
+        },
+      });
+      expect(xml).toContain('<pFCP>2');
+      expect(xml).toContain('<vFCP>2');
+    });
+
+    it('FCP em ICMS10 gera vBCFCP + pFCP + vFCP', () => {
+      const { xml } = buildWithIcms({
+        ICMS10: {
+          orig: 0, CST: '10', modBC: 3, vBC: 100, pICMS: 18, vICMS: 18,
+          vBCFCP: 100, pFCP: 2, vFCP: 2,
+          modBCST: 4, vBCST: 150, pICMSST: 18, vICMSST: 27,
+        },
+      });
+      // Builder do work-api-nfe e generico (record<unknown>) — passa os
+      // campos como vieram. Verificamos so a presenca das tags no trecho
+      // do ICMS10 pra nao confundir com vFCP do total geral.
+      const trecho = xml.match(/<ICMS10>[\s\S]*?<\/ICMS10>/)?.[0] ?? '';
+      expect(trecho).toMatch(/<vBCFCP>/);
+      expect(trecho).toMatch(/<pFCP>/);
+      expect(trecho).toMatch(/<vFCP>/);
+    });
+  });
 });
 
 describe('buildConsStatServXml', () => {

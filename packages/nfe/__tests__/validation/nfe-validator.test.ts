@@ -163,4 +163,128 @@ describe('validarRegrasNegocio', () => {
       expect(() => validarRegrasNegocio(nfe)).toThrow(/duplicatas/);
     });
   });
+
+  // ============================================================
+  // Validacao por CST/CSOSN — campos obrigatorios por bloco ICMS
+  // ============================================================
+  describe('validarNFe — CST ICMS Regime Normal', () => {
+    function createNFeComIcms(blocoIcms: Record<string, unknown>) {
+      const nfe = createMinimalNFe();
+      (nfe.det[0].imposto as any).ICMS = blocoIcms;
+      return nfe;
+    }
+
+    it('ICMS00 valido (orig + CST + modBC + vBC + pICMS + vICMS) passa', () => {
+      const nfe = createNFeComIcms({
+        ICMS00: { orig: '0', CST: '00', modBC: '3', vBC: '100.00', pICMS: '18.0000', vICMS: '18.00' },
+      });
+      expect(() => validarNFe(nfe)).not.toThrow();
+    });
+
+    it('ICMS00 SEM vBC falha', () => {
+      const nfe = createNFeComIcms({
+        ICMS00: { orig: '0', CST: '00', modBC: '3', pICMS: '18.0000', vICMS: '18.00' },
+      });
+      expect(() => validarNFe(nfe)).toThrow(/vBC/i);
+    });
+
+    it('ICMS10 SEM vBCST falha (substituicao tributaria)', () => {
+      const nfe = createNFeComIcms({
+        ICMS10: {
+          orig: '0', CST: '10', modBC: '3', vBC: '100.00', pICMS: '18.0000', vICMS: '18.00',
+          modBCST: '4', pICMSST: '18.0000', vICMSST: '27.00',
+          // FALTA vBCST
+        },
+      });
+      expect(() => validarNFe(nfe)).toThrow(/vBCST/i);
+    });
+
+    it('ICMS20 SEM pRedBC falha', () => {
+      const nfe = createNFeComIcms({
+        ICMS20: {
+          orig: '0', CST: '20', modBC: '3', vBC: '70.00', pICMS: '18.0000', vICMS: '12.60',
+          // FALTA pRedBC
+        },
+      });
+      expect(() => validarNFe(nfe)).toThrow(/pRedBC/i);
+    });
+
+    it('ICMS40 (isenta) so exige orig + CST', () => {
+      const nfe = createNFeComIcms({ ICMS40: { orig: '0', CST: '40' } });
+      expect(() => validarNFe(nfe)).not.toThrow();
+    });
+
+    it('ICMS41 (nao tributada) tambem ok com orig + CST', () => {
+      const nfe = createNFeComIcms({ ICMS40: { orig: '0', CST: '41' } });
+      expect(() => validarNFe(nfe)).not.toThrow();
+    });
+
+    it('ICMS51 (diferimento) SEM vICMSDif falha', () => {
+      const nfe = createNFeComIcms({
+        ICMS51: {
+          orig: '0', CST: '51', modBC: '3', vBC: '100.00', pICMS: '18.0000',
+          vICMSOp: '18.00', vICMS: '0.00',
+          // FALTA vICMSDif
+        },
+      });
+      expect(() => validarNFe(nfe)).toThrow(/vICMSDif/i);
+    });
+
+    it('ICMS60 (ST anterior) SEM vICMSSTRet falha', () => {
+      const nfe = createNFeComIcms({
+        ICMS60: { orig: '0', CST: '60', vBCSTRet: '150.00' },
+      });
+      expect(() => validarNFe(nfe)).toThrow(/vICMSSTRet/i);
+    });
+
+    it('ICMS70 SEM pRedBC nem vBCST falha (precisa dos 2)', () => {
+      const nfe = createNFeComIcms({
+        ICMS70: {
+          orig: '0', CST: '70', modBC: '3', vBC: '70.00', pICMS: '18.0000', vICMS: '12.60',
+          modBCST: '4', pICMSST: '18.0000', vICMSST: '27.00',
+        },
+      });
+      // Faltou pRedBC + vBCST → deve falhar em pelo menos um
+      expect(() => validarNFe(nfe)).toThrow();
+    });
+
+    it('orig "0" (Nacional) eh valido — nao confundir com null/empty', () => {
+      const nfe = createNFeComIcms({
+        ICMS00: { orig: '0', CST: '00', modBC: '3', vBC: '100', pICMS: '18', vICMS: '18' },
+      });
+      expect(() => validarNFe(nfe)).not.toThrow();
+    });
+
+    it('CST desconhecido (ICMS99) e ignorado pela validacao (XSD trata)', () => {
+      const nfe = createNFeComIcms({ ICMS99: { campo_qualquer: 'x' } });
+      expect(() => validarNFe(nfe)).not.toThrow();
+    });
+  });
+
+  describe('validarNFe — CSOSN Simples Nacional', () => {
+    function createNFeComIcms(blocoIcms: Record<string, unknown>) {
+      const nfe = createMinimalNFe();
+      (nfe.det[0].imposto as any).ICMS = blocoIcms;
+      return nfe;
+    }
+
+    it('ICMSSN102 (sem credito) so exige orig + CSOSN', () => {
+      const nfe = createNFeComIcms({ ICMSSN102: { orig: '0', CSOSN: '102' } });
+      expect(() => validarNFe(nfe)).not.toThrow();
+    });
+
+    it('ICMSSN101 SEM pCredSN falha', () => {
+      const nfe = createNFeComIcms({
+        ICMSSN101: { orig: '0', CSOSN: '101', vCredICMSSN: '4.00' },
+      });
+      expect(() => validarNFe(nfe)).toThrow(/pCredSN/i);
+    });
+
+    it('ICMSSN500 SEM vICMSSTRet falha', () => {
+      const nfe = createNFeComIcms({
+        ICMSSN500: { orig: '0', CSOSN: '500', vBCSTRet: '150.00' },
+      });
+      expect(() => validarNFe(nfe)).toThrow(/vICMSSTRet/i);
+    });
+  });
 });

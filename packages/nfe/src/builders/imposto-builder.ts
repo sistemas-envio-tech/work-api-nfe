@@ -46,8 +46,10 @@ function buildICMSFields(icms: ICMSType): XmlObject {
 
   // Campos comuns
   if ('modBC' in icms && icms.modBC !== undefined) obj.modBC = String(icms.modBC);
-  if ('vBC' in icms && icms.vBC !== undefined) obj.vBC = formatarDecimal(icms.vBC, 2);
+  // pRedBC vem ANTES de vBC no XSD (ICMS20/51/70/90 e CSON 201/202/900): a ordem
+  // invertida passava no zod e a SEFAZ devolvia 225 (falha de esquema).
   if ('pRedBC' in icms && icms.pRedBC !== undefined) obj.pRedBC = formatarDecimal(icms.pRedBC, 4);
+  if ('vBC' in icms && icms.vBC !== undefined) obj.vBC = formatarDecimal(icms.vBC, 2);
   if ('pICMS' in icms && icms.pICMS !== undefined) obj.pICMS = formatarDecimal(icms.pICMS, 4);
   if ('vICMS' in icms && icms.vICMS !== undefined) obj.vICMS = formatarDecimal(icms.vICMS, 2);
 

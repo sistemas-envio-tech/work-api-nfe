@@ -73,7 +73,18 @@ function buildICMSFields(icms: ICMSType): XmlObject {
   if ('pFCPST' in icms && icms.pFCPST !== undefined) obj.pFCPST = formatarDecimal(icms.pFCPST, 4);
   if ('vFCPST' in icms && icms.vFCPST !== undefined) obj.vFCPST = formatarDecimal(icms.vFCPST, 2);
 
-  // FCP-ST Retido (CST 60 — quando ST foi recolhido anteriormente)
+  // ST Retido anteriormente (ICMS60 / ICMSSN500). No XSD 4.00 e UMA
+  // sequence opcional: vBCSTRet, pST, vICMSSubstituto?, vICMSSTRet — nessa
+  // ordem, e pST obrigatorio dentro dela. Ate 12/09/2026 pST nao era
+  // repassado e o grupo vinha depois do FCP-ST Ret (ordem invertida):
+  // NF-e nº 901 da Sabor voltou com cStat 225 (Falha no Esquema XML).
+  if ('vBCSTRet' in icms && icms.vBCSTRet !== undefined) obj.vBCSTRet = formatarDecimal(icms.vBCSTRet, 2);
+  if ('pST' in icms && icms.pST !== undefined) obj.pST = formatarDecimal(icms.pST, 4);
+  if ('vICMSSubstituto' in icms && icms.vICMSSubstituto !== undefined) obj.vICMSSubstituto = formatarDecimal(icms.vICMSSubstituto, 2);
+  if ('vICMSSTRet' in icms && icms.vICMSSTRet !== undefined) obj.vICMSSTRet = formatarDecimal(icms.vICMSSTRet, 2);
+
+  // FCP-ST Retido (CST 60 — quando ST foi recolhido anteriormente); vem
+  // DEPOIS do grupo ST Ret no XSD.
   if ('vBCFCPSTRet' in icms && icms.vBCFCPSTRet !== undefined) obj.vBCFCPSTRet = formatarDecimal(icms.vBCFCPSTRet, 2);
   if ('pFCPSTRet' in icms && icms.pFCPSTRet !== undefined) obj.pFCPSTRet = formatarDecimal(icms.pFCPSTRet, 4);
   if ('vFCPSTRet' in icms && icms.vFCPSTRet !== undefined) obj.vFCPSTRet = formatarDecimal(icms.vFCPSTRet, 2);
@@ -85,10 +96,6 @@ function buildICMSFields(icms: ICMSType): XmlObject {
   // Simples Nacional
   if ('pCredSN' in icms && icms.pCredSN !== undefined) obj.pCredSN = formatarDecimal(icms.pCredSN, 4);
   if ('vCredICMSSN' in icms && icms.vCredICMSSN !== undefined) obj.vCredICMSSN = formatarDecimal(icms.vCredICMSSN, 2);
-
-  // ST Ret
-  if ('vBCSTRet' in icms && icms.vBCSTRet !== undefined) obj.vBCSTRet = formatarDecimal(icms.vBCSTRet, 2);
-  if ('vICMSSTRet' in icms && icms.vICMSSTRet !== undefined) obj.vICMSSTRet = formatarDecimal(icms.vICMSSTRet, 2);
 
   // ICMS51 specific
   if ('vICMSOp' in icms && icms.vICMSOp !== undefined) obj.vICMSOp = formatarDecimal(icms.vICMSOp, 2);

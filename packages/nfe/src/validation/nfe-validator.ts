@@ -161,7 +161,12 @@ const CAMPOS_OBRIGATORIOS_POR_CST: Record<string, readonly string[]> = {
   ICMS30: ['orig', 'CST', 'modBCST', 'vBCST', 'pICMSST', 'vICMSST'],
   ICMS40: ['orig', 'CST'], // 40/41/50 idem
   ICMS51: ['orig', 'CST', 'modBC', 'vBC', 'pICMS', 'vICMSOp', 'vICMSDif', 'vICMS'],
-  ICMS60: ['orig', 'CST', 'vBCSTRet', 'vICMSSTRet'],
+  // ICMS60 / ICMSSN500: o grupo do ST retido (vBCSTRet, pST, vICMSSubstituto?,
+  // vICMSSTRet) e uma <sequence minOccurs="0"> no XSD — ou vai inteiro, ou
+  // nao vai. Ate 12/09/2026 este mapa exigia vBCSTRet+vICMSSTRet sempre, e a
+  // NF-e nº 901 da Sabor saiu com os dois em "0.00" sem pST (cStat 225).
+  // Tratado em GRUPOS_CONDICIONAIS abaixo.
+  ICMS60: ['orig', 'CST'],
   ICMS70: [
     'orig', 'CST', 'modBC', 'pRedBC', 'vBC', 'pICMS', 'vICMS',
     'modBCST', 'vBCST', 'pICMSST', 'vICMSST',
@@ -177,8 +182,18 @@ const CAMPOS_OBRIGATORIOS_POR_CST: Record<string, readonly string[]> = {
   ICMSSN203: ['orig', 'CSOSN', 'modBCST', 'vBCST', 'pICMSST', 'vICMSST'],
   ICMSSN300: ['orig', 'CSOSN'],
   ICMSSN400: ['orig', 'CSOSN'],
-  ICMSSN500: ['orig', 'CSOSN', 'vBCSTRet', 'vICMSSTRet'],
+  ICMSSN500: ['orig', 'CSOSN'],
   ICMSSN900: ['orig', 'CSOSN'],
+};
+
+/**
+ * Grupos opcionais do XSD que, quando QUALQUER campo aparece, exigem os
+ * campos marcados. `gatilho` = campos que ligam o grupo; `exige` = o que o
+ * XSD obriga dentro dele.
+ */
+const GRUPOS_CONDICIONAIS: Record<string, ReadonlyArray<{ gatilho: readonly string[]; exige: readonly string[] }>> = {
+  ICMS60: [{ gatilho: ['vBCSTRet', 'pST', 'vICMSSubstituto', 'vICMSSTRet'], exige: ['vBCSTRet', 'vICMSSTRet', 'pST'] }],
+  ICMSSN500: [{ gatilho: ['vBCSTRet', 'pST', 'vICMSSubstituto', 'vICMSSTRet'], exige: ['vBCSTRet', 'vICMSSTRet', 'pST'] }],
 };
 
 function validarBlocoIcms(
@@ -213,6 +228,15 @@ function validarBlocoIcms(
       // Demais: precisa ser numero preenchido (string numerica conta).
       if (!ehNumeroPreenchido(valor)) {
         addIssue([...basePath, chave, campo], `${chave}.${campo} obrigatorio (numero)`);
+      }
+    }
+    for (const grupo of GRUPOS_CONDICIONAIS[tipo] ?? []) {
+      const ligado = grupo.gatilho.some((c) => blocoObj[c] !== undefined && blocoObj[c] !== null && blocoObj[c] !== '');
+      if (!ligado) continue;
+      for (const campo of grupo.exige) {
+        if (!ehNumeroPreenchido(blocoObj[campo])) {
+          addIssue([...basePath, chave, campo], `${chave}.${campo} obrigatorio (numero) quando o grupo do ST retido e informado`);
+        }
       }
     }
   }

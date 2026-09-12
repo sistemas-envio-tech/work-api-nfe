@@ -46,8 +46,10 @@ function buildICMSFields(icms: ICMSType): XmlObject {
 
   // Campos comuns
   if ('modBC' in icms && icms.modBC !== undefined) obj.modBC = String(icms.modBC);
-  if ('vBC' in icms && icms.vBC !== undefined) obj.vBC = formatarDecimal(icms.vBC, 2);
+  // pRedBC vem ANTES de vBC no XSD (ICMS20/51/70/90 e CSON 201/202/900): a ordem
+  // invertida passava no zod e a SEFAZ devolvia 225 (falha de esquema).
   if ('pRedBC' in icms && icms.pRedBC !== undefined) obj.pRedBC = formatarDecimal(icms.pRedBC, 4);
+  if ('vBC' in icms && icms.vBC !== undefined) obj.vBC = formatarDecimal(icms.vBC, 2);
   if ('pICMS' in icms && icms.pICMS !== undefined) obj.pICMS = formatarDecimal(icms.pICMS, 4);
   if ('vICMS' in icms && icms.vICMS !== undefined) obj.vICMS = formatarDecimal(icms.vICMS, 2);
 
@@ -71,7 +73,18 @@ function buildICMSFields(icms: ICMSType): XmlObject {
   if ('pFCPST' in icms && icms.pFCPST !== undefined) obj.pFCPST = formatarDecimal(icms.pFCPST, 4);
   if ('vFCPST' in icms && icms.vFCPST !== undefined) obj.vFCPST = formatarDecimal(icms.vFCPST, 2);
 
-  // FCP-ST Retido (CST 60 — quando ST foi recolhido anteriormente)
+  // ST Retido anteriormente (ICMS60 / ICMSSN500). No XSD 4.00 e UMA
+  // sequence opcional: vBCSTRet, pST, vICMSSubstituto?, vICMSSTRet — nessa
+  // ordem, e pST obrigatorio dentro dela. Ate 12/09/2026 pST nao era
+  // repassado e o grupo vinha depois do FCP-ST Ret (ordem invertida):
+  // NF-e nº 901 da Sabor voltou com cStat 225 (Falha no Esquema XML).
+  if ('vBCSTRet' in icms && icms.vBCSTRet !== undefined) obj.vBCSTRet = formatarDecimal(icms.vBCSTRet, 2);
+  if ('pST' in icms && icms.pST !== undefined) obj.pST = formatarDecimal(icms.pST, 4);
+  if ('vICMSSubstituto' in icms && icms.vICMSSubstituto !== undefined) obj.vICMSSubstituto = formatarDecimal(icms.vICMSSubstituto, 2);
+  if ('vICMSSTRet' in icms && icms.vICMSSTRet !== undefined) obj.vICMSSTRet = formatarDecimal(icms.vICMSSTRet, 2);
+
+  // FCP-ST Retido (CST 60 — quando ST foi recolhido anteriormente); vem
+  // DEPOIS do grupo ST Ret no XSD.
   if ('vBCFCPSTRet' in icms && icms.vBCFCPSTRet !== undefined) obj.vBCFCPSTRet = formatarDecimal(icms.vBCFCPSTRet, 2);
   if ('pFCPSTRet' in icms && icms.pFCPSTRet !== undefined) obj.pFCPSTRet = formatarDecimal(icms.pFCPSTRet, 4);
   if ('vFCPSTRet' in icms && icms.vFCPSTRet !== undefined) obj.vFCPSTRet = formatarDecimal(icms.vFCPSTRet, 2);
@@ -83,10 +96,6 @@ function buildICMSFields(icms: ICMSType): XmlObject {
   // Simples Nacional
   if ('pCredSN' in icms && icms.pCredSN !== undefined) obj.pCredSN = formatarDecimal(icms.pCredSN, 4);
   if ('vCredICMSSN' in icms && icms.vCredICMSSN !== undefined) obj.vCredICMSSN = formatarDecimal(icms.vCredICMSSN, 2);
-
-  // ST Ret
-  if ('vBCSTRet' in icms && icms.vBCSTRet !== undefined) obj.vBCSTRet = formatarDecimal(icms.vBCSTRet, 2);
-  if ('vICMSSTRet' in icms && icms.vICMSSTRet !== undefined) obj.vICMSSTRet = formatarDecimal(icms.vICMSSTRet, 2);
 
   // ICMS51 specific
   if ('vICMSOp' in icms && icms.vICMSOp !== undefined) obj.vICMSOp = formatarDecimal(icms.vICMSOp, 2);

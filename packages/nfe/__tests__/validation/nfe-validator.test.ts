@@ -237,6 +237,25 @@ describe('validarRegrasNegocio', () => {
       expect(() => validarNFe(nfe)).toThrow(/vICMSSTRet/i);
     });
 
+    it('ICMS60 so com orig + CST passa (grupo do ST retido e opcional no XSD)', () => {
+      const nfe = createNFeComIcms({ ICMS60: { orig: '0', CST: '60' } });
+      expect(() => validarNFe(nfe)).not.toThrow();
+    });
+
+    it('ICMS60 com vBCSTRet e vICMSSTRet mas SEM pST falha (cStat 225 da NF-e 901)', () => {
+      const nfe = createNFeComIcms({
+        ICMS60: { orig: '0', CST: '60', vBCSTRet: '0.00', vICMSSTRet: '0.00' },
+      });
+      expect(() => validarNFe(nfe)).toThrow(/pST/);
+    });
+
+    it('ICMS60 com o grupo completo passa', () => {
+      const nfe = createNFeComIcms({
+        ICMS60: { orig: '0', CST: '60', vBCSTRet: '40.00', pST: '23.0000', vICMSSTRet: '9.20' },
+      });
+      expect(() => validarNFe(nfe)).not.toThrow();
+    });
+
     it('ICMS70 SEM pRedBC nem vBCST falha (precisa dos 2)', () => {
       const nfe = createNFeComIcms({
         ICMS70: {
@@ -285,6 +304,11 @@ describe('validarRegrasNegocio', () => {
         ICMSSN500: { orig: '0', CSOSN: '500', vBCSTRet: '150.00' },
       });
       expect(() => validarNFe(nfe)).toThrow(/vICMSSTRet/i);
+    });
+
+    it('ICMSSN500 so com orig + CSOSN passa', () => {
+      const nfe = createNFeComIcms({ ICMSSN500: { orig: '0', CSOSN: '500' } });
+      expect(() => validarNFe(nfe)).not.toThrow();
     });
   });
 });

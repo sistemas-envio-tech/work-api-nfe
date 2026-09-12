@@ -269,6 +269,10 @@ describe('buildNFeXml', () => {
       });
       expect(xml).toContain('<ICMS20>');
       expect(xml).toContain('<pRedBC>30');
+      // Ordem do XSD: modBC, pRedBC, vBC, pICMS, vICMS — invertida a SEFAZ rejeita (225).
+      const trecho = xml.match(/<ICMS20>[\s\S]*?<\/ICMS20>/)?.[0] ?? '';
+      expect(trecho.indexOf('<pRedBC>')).toBeLessThan(trecho.indexOf('<vBC>'));
+      expect(trecho.indexOf('<modBC>')).toBeLessThan(trecho.indexOf('<pRedBC>'));
     });
 
     it('ICMS40 (isenta) gera so orig + CST', () => {

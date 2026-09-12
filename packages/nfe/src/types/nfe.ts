@@ -298,6 +298,8 @@ export interface ICMSSN500 {
   orig: number;
   CSOSN: '500';
   vBCSTRet?: number;
+  pST?: number;
+  vICMSSubstituto?: number;
   vICMSSTRet?: number;
 }
 
